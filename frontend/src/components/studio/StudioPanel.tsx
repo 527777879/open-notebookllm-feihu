@@ -24,6 +24,7 @@ import * as studioApi from '@/api/studio'
 import type { StudioOutputType, PodcastScript, PodcastSegment, PodcastSpeaker, PodcastVoice, PodcastStyle } from '@/types'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
+import MindmapRenderer from './MindmapRenderer'
 
 interface StudioPanelProps {
   notebookId: string
@@ -610,39 +611,10 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
   }
 
   if (type === 'mindmap') {
-    const mindmap = (data as { data?: { central?: string; branches?: Array<{ name: string; children?: Array<{ name: string }> }> } }).data ||
-                    (data as { central?: string; branches?: Array<{ name: string; children?: Array<{ name: string }> }> })
-    if (!mindmap || !mindmap.central) return <p className="text-gray-500">無法顯示心智圖</p>
+    const mindmap = (data as { data?: Record<string, unknown> }).data || data
+    if (!mindmap) return <p className="text-gray-500">無法顯示心智圖</p>
 
-    return (
-      <div className="space-y-2">
-        <div className="text-center">
-          <span className="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg font-medium">
-            {mindmap.central}
-          </span>
-        </div>
-        <div className="ml-8 space-y-2">
-          {mindmap.branches?.map((branch: { name: string; children?: Array<{ name: string }> }, index: number) => (
-            <div key={index}>
-              <div className="flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">{branch.name}</span>
-              </div>
-              {branch.children && branch.children.length > 0 && (
-                <div className="ml-6 mt-1 space-y-1">
-                  {branch.children.map((child: { name: string }, i: number) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
-                      <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-                      {child.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+    return <MindmapRenderer data={mindmap as Parameters<typeof MindmapRenderer>[0]['data']} />
   }
 
   if (type === 'podcast') {

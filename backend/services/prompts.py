@@ -79,7 +79,7 @@ class StudioPrompts:
 
 請直接提供摘要內容，使用 Markdown 格式。"""
 
-    MINDMAP = """根據以下內容生成心智圖結構。
+    MINDMAP = """根據以下內容生成專業的心智圖結構。
 
 ## 來源內容
 
@@ -91,31 +91,69 @@ class StudioPrompts:
 
 ```json
 {{
-    "central": "中心主題",
+    "central": {{
+        "text": "中心主題",
+        "description": "主題簡短說明",
+        "icon": "lightbulb"
+    }},
     "branches": [
         {{
-            "name": "主分支1",
+            "text": "主分支1",
+            "description": "分支說明（選填）",
+            "color": "#4CAF50",
+            "icon": "folder",
             "children": [
-                {{"name": "子節點1-1", "children": []}},
-                {{"name": "子節點1-2", "children": []}}
+                {{
+                    "text": "子節點1-1",
+                    "description": "節點說明（選填）",
+                    "children": []
+                }},
+                {{
+                    "text": "子節點1-2",
+                    "children": [
+                        {{"text": "三級節點", "children": []}}
+                    ]
+                }}
             ]
         }},
         {{
-            "name": "主分支2",
-            "children": [
-                {{"name": "子節點2-1", "children": []}}
-            ]
+            "text": "主分支2",
+            "color": "#2196F3",
+            "icon": "star",
+            "children": []
         }}
-    ]
+    ],
+    "metadata": {{
+        "title": "心智圖標題",
+        "totalNodes": 10,
+        "maxDepth": 3
+    }}
 }}
 ```
 
-注意：
-1. **所有節點名稱必須使用繁體中文**
-2. 中心主題應概括整體內容
-3. 主分支不超過 6 個
-4. 每個分支的子節點不超過 5 個
-5. 層級不超過 3 層"""
+## 顏色建議（每個主分支使用不同顏色）
+- 綠色系: #4CAF50, #8BC34A, #CDDC39
+- 藍色系: #2196F3, #03A9F4, #00BCD4
+- 紫色系: #9C27B0, #673AB7, #3F51B5
+- 橘色系: #FF9800, #FF5722, #F44336
+- 青色系: #009688, #00BCD4, #4DD0E1
+
+## 圖標建議（根據內容選擇適合的圖標）
+- 概念類: lightbulb, idea, brain, puzzle
+- 資料類: folder, file, database, chart
+- 行動類: rocket, flag, target, check
+- 人物類: user, users, team, person
+- 物件類: star, heart, bookmark, tag
+
+## 注意事項
+1. **所有文字必須使用繁體中文**
+2. 中心主題應精準概括整體內容（5-15 字）
+3. 主分支 3-6 個，代表主要分類
+4. 每個分支的子節點 2-5 個
+5. 層級最多 4 層（中心 → 主分支 → 子節點 → 三級節點）
+6. 每個主分支使用不同顏色
+7. description 用於補充說明，保持簡潔（10-30 字）
+8. 確保邏輯層次清晰，同級節點相關性高"""
 
     FLASHCARDS = """根據以下內容生成 {count} 張學習卡。
 

@@ -64,7 +64,7 @@ class StudioService:
             return {"error": str(e)}
 
     def generate_mindmap(self, source_ids: Optional[List[str]] = None, notebook_id: Optional[str] = None) -> Dict[str, Any]:
-        """生成心智圖"""
+        """生成心智圖（包含 JSON 和 Mermaid 格式）"""
         content = self.get_sources_content(source_ids, notebook_id)
         if not content:
             return {"error": "沒有可用的來源內容"}
@@ -74,10 +74,59 @@ class StudioService:
 
         try:
             result = ai_service.generate_json(prompt)
+
+            # 轉換為 Mermaid 格式
+            mermaid_code = self._convert_to_mermaid(result)
+            result["mermaid"] = mermaid_code
+
+            # 兼容舊格式（如果使用新格式）
+            if "central" in result and isinstance(result["central"], dict):
+                result["central_text"] = result["central"].get("text", "")
+            elif "central" in result and isinstance(result["central"], str):
+                result["central_text"] = result["central"]
+
             return {"data": result, "type": "mindmap"}
         except Exception as e:
             logger.error(f"心智圖生成失敗: {e}")
             return {"error": str(e)}
+
+    def _convert_to_mermaid(self, mindmap_data: Dict) -> str:
+        """將心智圖 JSON 轉換為 Mermaid 格式"""
+        lines = ["mindmap"]
+
+        # 處理中心節點
+        central = mindmap_data.get("central", {})
+        if isinstance(central, dict):
+            central_text = central.get("text", "中心主題")
+        else:
+            central_text = str(central)
+
+        lines.append(f"  root(({central_text}))")
+
+        # 處理分支
+        branches = mindmap_data.get("branches", [])
+        for branch in branches:
+            self._add_mermaid_node(lines, branch, indent=2)
+
+        return "\n".join(lines)
+
+    def _add_mermaid_node(self, lines: list, node: Dict, indent: int = 2):
+        """遞迴加入 Mermaid 節點"""
+        # 取得節點文字（兼容新舊格式）
+        text = node.get("text") or node.get("name", "")
+        if not text:
+            return
+
+        # 生成縮排
+        prefix = "  " * indent
+
+        # 加入節點（使用圓角矩形）
+        lines.append(f"{prefix}{text}")
+
+        # 處理子節點
+        children = node.get("children", [])
+        for child in children:
+            self._add_mermaid_node(lines, child, indent + 1)
 
     def generate_flashcards(self, count: int = 10, source_ids: Optional[List[str]] = None, notebook_id: Optional[str] = None) -> Dict[str, Any]:
         """生成學習卡"""
