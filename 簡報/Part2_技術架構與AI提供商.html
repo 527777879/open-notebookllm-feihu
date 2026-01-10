@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 2 - 技術架構與 AI 提供商</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; overflow: hidden; color: #333; }
+        .nav-bar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10000; }
+        .nav-title { font-size: 22px; font-weight: 700; color: #fff; }
+        .nav-buttons { display: flex; gap: 12px; }
+        .nav-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.4); transform: translateY(-2px); }
+        .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.25); color: white; width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); font-size: 24px; cursor: pointer; z-index: 9000; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .nav-arrow:hover { background: rgba(255,255,255,0.5); transform: translateY(-50%) scale(1.1); }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+        .slide-container { width: 100%; height: 100vh; padding-top: 60px; position: relative; z-index: 1; }
+        .slide { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100vh - 60px); display: none; align-items: center; justify-content: center; padding: 40px; opacity: 0; transition: opacity 0.4s ease; z-index: 10; }
+        .slide.active { display: flex; opacity: 1; z-index: 20; }
+        .content-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); padding: 60px; max-width: 1400px; width: 95%; max-height: 88vh; overflow-y: auto; }
+        h1 { color: #667eea; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #764ba2; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #667eea; padding-bottom: 12px; }
+        h3 { color: #667eea; font-size: 26px; margin: 30px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #f0f2f5; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #d63384; font-weight: 600; }
+        pre { background: #282c34; color: #abb2bf; padding: 25px; border-radius: 12px; overflow-x: auto; margin: 25px 0; font-size: 16px; line-height: 1.6; }
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 18px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .highlight { background: linear-gradient(120deg, #667eea 0%, #764ba2 100%); padding: 4px 12px; border-radius: 6px; font-weight: bold; color: white; }
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; transition: transform 0.3s, border-color 0.3s; }
+        .concept-card:hover { transform: translateY(-5px); border-color: #667eea; }
+        .concept-card h3 { margin-top: 0; color: #667eea; }
+        .feature-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+        .feature-table th, .feature-table td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 18px; }
+        .feature-table th { background: #667eea; color: white; font-weight: 600; }
+        .feature-table tr:hover { background: #f8f9fa; }
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: #667eea; transform: scale(1.3); }
+        .icon-large { font-size: 64px; text-align: center; margin-bottom: 20px; }
+        .arch-diagram { background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center; }
+        .arch-layer { background: white; padding: 20px; margin: 10px 0; border-radius: 10px; border: 2px solid #667eea; }
+        .arch-arrow { font-size: 30px; color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-title">🏗️ Part 2 - 技術架構與 AI 提供商</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="nav-btn">📘 FB</a>
+            <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="nav-btn">🎥 YT</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <!-- Slide 1: 封面 -->
+        <div class="slide active">
+            <div class="content-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="icon-large">🏗️</div>
+                <h4 style="color: #667eea; letter-spacing: 2px; margin-bottom: 10px;">Open NotebookLLM 教學系列</h4>
+                <h1>Part 2: 技術架構與 AI 提供商</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666; max-width: 800px;">
+                    深入了解系統架構設計與多 AI 提供商整合方式
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">Provider 抽象層</span>
+                    <span class="highlight">RAG 架構</span>
+                    <span class="highlight">API 設計</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: 系統架構圖 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🏛️ 系統架構總覽</h2>
+                <div class="arch-diagram">
+                    <div class="arch-layer" style="background: #e3f2fd;">
+                        <strong>前端 Frontend</strong><br>
+                        React 18 + TypeScript + TailwindCSS + Zustand
+                    </div>
+                    <div class="arch-arrow">⬇️ HTTP / SSE</div>
+                    <div class="arch-layer" style="background: #fff3cd;">
+                        <strong>API 層 Controllers</strong><br>
+                        RESTful API + SSE 串流
+                    </div>
+                    <div class="arch-arrow">⬇️</div>
+                    <div class="arch-layer" style="background: #d4edda;">
+                        <strong>服務層 Services</strong><br>
+                        RAG Service / Studio Service / Podcast Service
+                    </div>
+                    <div class="arch-arrow">⬇️</div>
+                    <div class="arch-layer" style="background: #f8d7da;">
+                        <strong>AI 提供商抽象層</strong><br>
+                        Gemini / OpenAI / Anthropic / Ollama / Groq / DeepSeek
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: AI Provider 抽象設計 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔌 AI Provider 抽象設計</h2>
+                <p>所有 AI 提供商都實現統一介面，讓切換提供商無痛進行：</p>
+                <pre>
+class BaseAIProvider:
+    def generate(self, prompt: str) -> str:
+        """生成文字回應"""
+        raise NotImplementedError
+
+    def generate_stream(self, prompt: str) -> Generator:
+        """串流生成回應"""
+        raise NotImplementedError
+
+    def generate_embedding(self, text: str) -> List[float]:
+        """生成向量嵌入"""
+        raise NotImplementedError
+
+    def generate_image(self, prompt: str) -> str:
+        """生成圖片 (base64)"""
+        raise NotImplementedError
+                </pre>
+                <div class="box info">
+                    <strong>設計模式：</strong>策略模式 (Strategy Pattern)，讓應用層不需知道具體使用哪個 AI。
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: 各提供商特性比較 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>⚖️ AI 提供商特性比較</h2>
+                <table class="feature-table">
+                    <tr>
+                        <th>提供商</th>
+                        <th>文字生成</th>
+                        <th>嵌入向量</th>
+                        <th>圖片生成</th>
+                        <th>特色</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Gemini</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>多模態、免費額度</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OpenAI</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>✅ DALL-E</td>
+                        <td>業界標竿</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Anthropic</strong></td>
+                        <td>✅</td>
+                        <td>❌ 備援</td>
+                        <td>❌</td>
+                        <td>超長上下文</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ollama</strong></td>
+                        <td>✅</td>
+                        <td>✅</td>
+                        <td>❌</td>
+                        <td>完全離線</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Groq</strong></td>
+                        <td>✅</td>
+                        <td>❌ 備援</td>
+                        <td>❌</td>
+                        <td>超高速推理</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DeepSeek</strong></td>
+                        <td>✅</td>
+                        <td>❌ 備援</td>
+                        <td>❌</td>
+                        <td>深度推理</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 5: RAG 架構 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔍 RAG 檢索增強生成</h2>
+                <p>RAG (Retrieval-Augmented Generation) 是本專案的核心技術：</p>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>1️⃣ 文件處理</h3>
+                        <p>上傳文件 → 解析內容 → 分割成 Chunks</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>2️⃣ 向量嵌入</h3>
+                        <p>將每個 Chunk 轉換為向量，存入資料庫</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>3️⃣ 檢索查詢</h3>
+                        <p>用戶問題 → 向量化 → 相似度搜尋</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>4️⃣ 增強生成</h3>
+                        <p>將相關 Chunks + 問題送給 LLM 生成答案</p>
+                    </div>
+                </div>
+                <div class="box success">
+                    <strong>優勢：</strong>AI 回答基於你的資料，減少幻覺，提高準確性！
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: 進階 RAG 技術 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🚀 進階 RAG 搜尋技術</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>RRF 融合</h3>
+                        <p>Reciprocal Rank Fusion 演算法，結合全文搜尋 + 向量搜尋的排名結果。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Query Expansion</h3>
+                        <p>LLM 自動擴展查詢，生成同義詞和相關詞，提高召回率。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>LLM Reranking</h3>
+                        <p>使用 LLM 對搜尋結果進行智能重排序，提升精準度。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>去重機制</h3>
+                        <p>自動識別並合併重複的搜尋結果，避免冗餘資訊。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: API 設計 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>📡 RESTful API 設計</h2>
+                <table class="feature-table">
+                    <tr>
+                        <th>模組</th>
+                        <th>端點範例</th>
+                        <th>說明</th>
+                    </tr>
+                    <tr>
+                        <td>筆記本</td>
+                        <td><code>GET /api/notebooks</code></td>
+                        <td>取得所有筆記本</td>
+                    </tr>
+                    <tr>
+                        <td>來源</td>
+                        <td><code>POST /api/notebooks/:id/sources/upload</code></td>
+                        <td>上傳文件</td>
+                    </tr>
+                    <tr>
+                        <td>對話</td>
+                        <td><code>POST /api/notebooks/:id/chats/stream</code></td>
+                        <td>SSE 串流對話</td>
+                    </tr>
+                    <tr>
+                        <td>工作室</td>
+                        <td><code>POST /api/notebooks/:id/studio/mindmap</code></td>
+                        <td>生成心智圖</td>
+                    </tr>
+                    <tr>
+                        <td>Podcast</td>
+                        <td><code>POST /api/notebooks/:id/studio/podcast</code></td>
+                        <td>生成 Podcast</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 8: 資料庫設計 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🗄️ 資料庫設計</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>Notebook</h3>
+                        <p>筆記本主表：id, title, created_at, folder_id</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Source</h3>
+                        <p>來源資料：id, notebook_id, type, title, content, url</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>SourceChunk</h3>
+                        <p>分割區塊：id, source_id, content, embedding, chunk_index</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Chat</h3>
+                        <p>對話記錄：id, notebook_id, role, content, sources</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>StudioOutput</h3>
+                        <p>工作室輸出：id, notebook_id, type, title, data</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Folder</h3>
+                        <p>資料夾：id, name, emoji, order</p>
+                    </div>
+                </div>
+                <div class="box info">
+                    <strong>搜尋引擎：</strong>使用 SQLite FTS5 全文搜尋 + 向量相似度搜尋
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 總結 -->
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎯 Part 2 總結</h2>
+                <p>在本單元中，我們深入了解了：</p>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>分層架構</h3>
+                        <p>前端 → API → 服務層 → AI 抽象層</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Provider 模式</h3>
+                        <p>統一介面，輕鬆切換 AI 提供商</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>RAG 流程</h3>
+                        <p>文件處理 → 嵌入 → 檢索 → 生成</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>進階搜尋</h3>
+                        <p>RRF 融合、Query Expansion、Reranking</p>
+                    </div>
+                </div>
+                <div class="box info" style="margin-top: 30px;">
+                    <strong>下一步：</strong>Part 3 將帶你實際動手設定環境與安裝專案！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        function init() { createIndicators(); showSlide(0); document.addEventListener('keydown', handleKeydown); }
+        function handleKeydown(e) { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); }
+        function createIndicators() { const container = document.getElementById('indicatorContainer'); for (let i = 0; i < totalSlides; i++) { const dot = document.createElement('div'); dot.className = 'dot'; dot.onclick = () => goToSlide(i); container.appendChild(dot); } }
+        function showSlide(index) { if (index < 0) index = 0; if (index >= totalSlides) index = totalSlides - 1; slides.forEach(s => s.classList.remove('active')); slides[index].classList.add('active'); currentSlide = index; document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === index)); document.getElementById('prevBtn').disabled = index === 0; document.getElementById('nextBtn').disabled = index === totalSlides - 1; }
+        function changeSlide(dir) { showSlide(currentSlide + dir); }
+        function goToSlide(index) { showSlide(index); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        init();
+    </script>
+</body>
+</html>

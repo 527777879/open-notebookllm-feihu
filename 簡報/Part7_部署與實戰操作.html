@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 7 - 部署與實戰操作</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; overflow: hidden; color: #333; }
+        .nav-bar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10000; }
+        .nav-title { font-size: 22px; font-weight: 700; color: #fff; }
+        .nav-buttons { display: flex; gap: 12px; }
+        .nav-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.4); }
+        .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.25); color: white; width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); font-size: 24px; cursor: pointer; z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; }
+        .slide { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100vh - 60px); display: none; align-items: center; justify-content: center; padding: 40px; opacity: 0; transition: opacity 0.4s; }
+        .slide.active { display: flex; opacity: 1; }
+        .content-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); padding: 60px; max-width: 1400px; width: 95%; max-height: 88vh; overflow-y: auto; }
+        h1 { color: #667eea; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #764ba2; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #667eea; padding-bottom: 12px; }
+        h3 { color: #667eea; font-size: 26px; margin: 25px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #f0f2f5; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #d63384; }
+        pre { background: #282c34; color: #abb2bf; padding: 25px; border-radius: 12px; margin: 25px 0; font-size: 16px; overflow-x: auto; white-space: pre-wrap; }
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 18px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .highlight { background: linear-gradient(120deg, #667eea 0%, #764ba2 100%); padding: 4px 12px; border-radius: 6px; color: white; }
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; }
+        .concept-card h3 { margin-top: 0; }
+        .feature-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+        .feature-table th, .feature-table td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 18px; }
+        .feature-table th { background: #667eea; color: white; }
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
+        .dot.active { background: #667eea; transform: scale(1.3); }
+        .icon-large { font-size: 64px; text-align: center; margin-bottom: 20px; }
+        .flow-diagram { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0; }
+        .flow-step { background: #667eea; color: white; padding: 20px 30px; border-radius: 15px; text-align: center; font-weight: 600; }
+        .flow-arrow { font-size: 30px; color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-title">🚀 Part 7 - 部署與實戰操作</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="nav-btn">📘 FB</a>
+            <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="nav-btn">🎥 YT</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <div class="slide active">
+            <div class="content-card" style="text-align: center;">
+                <div class="icon-large">🚀</div>
+                <h4 style="color: #667eea;">Open NotebookLLM 教學系列</h4>
+                <h1>Part 7: 部署與實戰操作</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666;">
+                    本地部署、雲端部署、實戰操作流程
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">快速啟動</span>
+                    <span class="highlight">Docker 部署</span>
+                    <span class="highlight">實戰操作</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🖥️ 本地開發部署</h2>
+                <h3>步驟 1：Clone 專案</h3>
+                <pre>git clone https://github.com/your-repo/open-notebookllm.git
+cd open-notebookllm</pre>
+                <h3>步驟 2：後端啟動</h3>
+                <pre>cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+python main.py</pre>
+                <h3>步驟 3：前端啟動</h3>
+                <pre>cd frontend
+npm install
+npm run dev</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🐳 Docker 部署</h2>
+                <h3>一鍵啟動</h3>
+                <pre>docker-compose up -d</pre>
+                <h3>docker-compose.yml 結構</h3>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>backend</h3>
+                        <p>FastAPI 服務</p>
+                        <p>Port: 8000</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>frontend</h3>
+                        <p>React 前端</p>
+                        <p>Port: 3000</p>
+                    </div>
+                </div>
+                <div class="box info">
+                    <strong>環境變數：</strong>在 docker-compose.yml 中設定 API Key
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>⚙️ 環境變數設定</h2>
+                <h3>backend/.env 範例</h3>
+                <pre># AI 提供商 API Keys
+OPENAI_API_KEY=sk-xxx
+GEMINI_API_KEY=xxx
+ANTHROPIC_API_KEY=xxx
+GROQ_API_KEY=xxx
+
+# 語音服務
+ELEVENLABS_API_KEY=xxx
+
+# 圖片生成
+OPENAI_IMAGE_API_KEY=sk-xxx</pre>
+                <div class="box warning">
+                    <strong>安全提醒：</strong>絕對不要將 .env 檔案提交到 Git！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>📱 實戰操作：建立筆記本</h2>
+                <div class="flow-diagram">
+                    <div class="flow-step">1. 建立筆記本</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">2. 上傳來源</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">3. 等待處理</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">4. 開始對話</div>
+                </div>
+                <div class="box success">
+                    <strong>提示：</strong>可同時上傳多個來源，系統會自動整合！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎨 實戰操作：工作室輸出</h2>
+                <table class="feature-table">
+                    <tr><th>功能</th><th>操作步驟</th><th>輸出格式</th></tr>
+                    <tr><td>摘要</td><td>點擊「生成摘要」</td><td>Markdown</td></tr>
+                    <tr><td>心智圖</td><td>點擊「心智圖」→ 選擇來源</td><td>Mermaid / SVG</td></tr>
+                    <tr><td>學習卡</td><td>設定數量、難度 → 生成</td><td>翻卡互動</td></tr>
+                    <tr><td>測驗</td><td>選擇題型、數量 → 生成</td><td>互動測驗</td></tr>
+                    <tr><td>簡報</td><td>設定頁數 → 生成 → 下載 PPTX</td><td>PPTX</td></tr>
+                    <tr><td>Podcast</td><td>選擇語音 → 生成 → 下載 MP3</td><td>MP3</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 常見問題排解</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>API Key 錯誤</h3>
+                        <p>檢查 .env 檔案是否正確設定</p>
+                        <p>確認 Key 沒有過期或額度用盡</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>前端連不上後端</h3>
+                        <p>確認後端服務已啟動</p>
+                        <p>檢查 CORS 設定</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>上傳失敗</h3>
+                        <p>檢查檔案格式是否支援</p>
+                        <p>檢查檔案大小限制</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>生成太慢</h3>
+                        <p>使用更快的 AI 模型</p>
+                        <p>減少來源內容長度</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>☁️ 雲端部署選項</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>Railway</h3>
+                        <p>簡單部署、自動 CI/CD</p>
+                        <p>適合小型專案</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Render</h3>
+                        <p>免費層可用</p>
+                        <p>支援 Docker 部署</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>AWS / GCP</h3>
+                        <p>企業級擴展性</p>
+                        <p>需要更多設定</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>自架 VPS</h3>
+                        <p>完全控制</p>
+                        <p>需要維運能力</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎯 課程總結</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>Part 1-2</h3>
+                        <p>專案概覽、技術架構</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Part 3</h3>
+                        <p>環境設定與安裝</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Part 4-5</h3>
+                        <p>RAG 搜尋、工作室功能</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Part 6-7</h3>
+                        <p>Podcast 生成、部署操作</p>
+                    </div>
+                </div>
+                <div class="box success" style="margin-top: 30px; text-align: center;">
+                    <strong>🎉 恭喜完成 Open NotebookLLM 完整教學！</strong>
+                    <p style="margin-top: 10px;">現在您已具備建立自己的 AI 知識庫應用的能力！</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card" style="text-align: center;">
+                <div class="icon-large">🙏</div>
+                <h1>感謝學習！</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666;">
+                    © 2026 Open NotebookLLM 教學
+                </h2>
+                <div style="margin-top: 40px;">
+                    <p style="font-size: 24px;">講師：曾慶良 (阿亮老師)</p>
+                </div>
+                <div style="margin-top: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="highlight" style="text-decoration: none;">📘 Facebook</a>
+                    <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="highlight" style="text-decoration: none;">🎥 YouTube</a>
+                    <a href="https://www.facebook.com/groups/2754139931432955?locale=zh_TW" target="_blank" class="highlight" style="text-decoration: none;">👥 3A科技研究社</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <script>
+        let currentSlide = 0; const slides = document.querySelectorAll('.slide'); const totalSlides = slides.length;
+        function init() { createIndicators(); showSlide(0); document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); }); }
+        function createIndicators() { const c = document.getElementById('indicatorContainer'); for (let i = 0; i < totalSlides; i++) { const d = document.createElement('div'); d.className = 'dot'; d.onclick = () => goToSlide(i); c.appendChild(d); } }
+        function showSlide(i) { if (i < 0) i = 0; if (i >= totalSlides) i = totalSlides - 1; slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i)); document.getElementById('prevBtn').disabled = i === 0; document.getElementById('nextBtn').disabled = i === totalSlides - 1; }
+        function changeSlide(d) { showSlide(currentSlide + d); } function goToSlide(i) { showSlide(i); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+        init();
+    </script>
+</body>
+</html>

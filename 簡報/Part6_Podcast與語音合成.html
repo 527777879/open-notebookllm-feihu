@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 6 - Podcast 與語音合成</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; overflow: hidden; color: #333; }
+        .nav-bar { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 10000; }
+        .nav-title { font-size: 22px; font-weight: 700; color: #fff; }
+        .nav-buttons { display: flex; gap: 12px; }
+        .nav-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.4); }
+        .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.25); color: white; width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); font-size: 24px; cursor: pointer; z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .prev-arrow { left: 30px; }
+        .next-arrow { right: 30px; }
+        .nav-arrow:disabled { opacity: 0.3; }
+        .slide { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100vh - 60px); display: none; align-items: center; justify-content: center; padding: 40px; opacity: 0; transition: opacity 0.4s; }
+        .slide.active { display: flex; opacity: 1; }
+        .content-card { background: rgba(255, 255, 255, 0.98); border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); padding: 60px; max-width: 1400px; width: 95%; max-height: 88vh; overflow-y: auto; }
+        h1 { color: #667eea; font-size: 56px; margin-bottom: 24px; text-align: center; }
+        h2 { color: #764ba2; font-size: 38px; margin-bottom: 35px; border-bottom: 3px solid #667eea; padding-bottom: 12px; }
+        h3 { color: #667eea; font-size: 26px; margin: 25px 0 15px 0; }
+        p, li { font-size: 20px; line-height: 1.8; color: #444; margin-bottom: 15px; }
+        code { background: #f0f2f5; padding: 3px 8px; border-radius: 6px; font-family: monospace; color: #d63384; }
+        pre { background: #282c34; color: #abb2bf; padding: 25px; border-radius: 12px; margin: 25px 0; font-size: 16px; overflow-x: auto; }
+        .box { padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 6px solid; font-size: 18px; }
+        .info { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+        .highlight { background: linear-gradient(120deg, #667eea 0%, #764ba2 100%); padding: 4px 12px; border-radius: 6px; color: white; }
+        .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+        .concept-card { background: #f8f9fa; padding: 25px; border-radius: 15px; border: 2px solid #e9ecef; }
+        .concept-card h3 { margin-top: 0; }
+        .feature-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+        .feature-table th, .feature-table td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 18px; }
+        .feature-table th { background: #667eea; color: white; }
+        .indicators { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 4000; padding: 10px 25px; background: rgba(0,0,0,0.3); border-radius: 30px; }
+        .dot { width: 12px; height: 12px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
+        .dot.active { background: #667eea; transform: scale(1.3); }
+        .icon-large { font-size: 64px; text-align: center; margin-bottom: 20px; }
+        .flow-diagram { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0; }
+        .flow-step { background: #667eea; color: white; padding: 20px 30px; border-radius: 15px; text-align: center; font-weight: 600; }
+        .flow-arrow { font-size: 30px; color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-title">🎙️ Part 6 - Podcast 與語音合成</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">🏠 首頁</a>
+            <button class="nav-btn" onclick="toggleFullscreen()">🖥️ 全螢幕</button>
+            <a href="https://www.facebook.com/?locale=zh_TW" target="_blank" class="nav-btn">📘 FB</a>
+            <a href="https://www.youtube.com/@Liang-yt02" target="_blank" class="nav-btn">🎥 YT</a>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <div class="slide active">
+            <div class="content-card" style="text-align: center;">
+                <div class="icon-large">🎙️</div>
+                <h4 style="color: #667eea;">Open NotebookLLM 教學系列</h4>
+                <h1>Part 6: Podcast 與語音合成</h1>
+                <h2 style="border: none; font-weight: normal; font-size: 28px; color: #666;">
+                    AI 生成對話腳本、多語音引擎支援
+                </h2>
+                <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                    <span class="highlight">腳本生成</span>
+                    <span class="highlight">TTS 語音</span>
+                    <span class="highlight">雙主持人</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎙️ Podcast 功能概覽</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>📝 AI 腳本生成</h3>
+                        <p>根據來源內容自動生成自然對話腳本</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>👥 雙主持人模式</h3>
+                        <p>Host A 與 Host B 交替對話</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>🔊 多語音引擎</h3>
+                        <p>支援多種 TTS 服務</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>📥 音檔匯出</h3>
+                        <p>下載 MP3 音檔</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔄 Podcast 生成流程</h2>
+                <div class="flow-diagram">
+                    <div class="flow-step">1. 選擇來源</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">2. 生成腳本</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">3. 選擇語音</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">4. 合成音檔</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">5. 下載播放</div>
+                </div>
+                <div class="box info">
+                    <strong>專業腳本：</strong>使用專業級 Prompt 生成自然、有深度的對話內容！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔊 TTS 語音引擎</h2>
+                <table class="feature-table">
+                    <tr><th>引擎</th><th>特色</th><th>需求</th></tr>
+                    <tr><td>OpenAI TTS</td><td>高品質、多語言、自然語調</td><td>OpenAI API Key</td></tr>
+                    <tr><td>Google TTS</td><td>免費、多語言</td><td>Google Cloud API Key</td></tr>
+                    <tr><td>Edge TTS (推薦)</td><td>免費、高品質、多語音</td><td>無需 API Key</td></tr>
+                    <tr><td>ElevenLabs</td><td>超自然、情感表達</td><td>ElevenLabs API Key</td></tr>
+                </table>
+                <div class="box success">
+                    <strong>推薦：</strong>Edge TTS 免費且品質優秀，適合大多數使用場景！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎭 Edge TTS 語音選擇</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>中文 (台灣)</h3>
+                        <p>zh-TW-HsiaoChenNeural (女)</p>
+                        <p>zh-TW-YunJheNeural (男)</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>中文 (中國)</h3>
+                        <p>zh-CN-XiaoxiaoNeural (女)</p>
+                        <p>zh-CN-YunxiNeural (男)</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>英文</h3>
+                        <p>en-US-JennyNeural (女)</p>
+                        <p>en-US-GuyNeural (男)</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>日文</h3>
+                        <p>ja-JP-NanamiNeural (女)</p>
+                        <p>ja-JP-KeitaNeural (男)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>📝 腳本生成提示詞</h2>
+                <div class="box info">
+                    <strong>專業級 Prompt 特點：</strong>
+                    <ul style="margin-top: 15px;">
+                        <li>自然對話風格，避免生硬朗讀</li>
+                        <li>主持人互動、提問、回應</li>
+                        <li>加入例子和類比說明</li>
+                        <li>適當的幽默和親和力</li>
+                        <li>結構化：開場 → 主題 → 總結</li>
+                    </ul>
+                </div>
+                <div class="box warning">
+                    <strong>注意：</strong>腳本長度會影響生成時間和音檔大小
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>⚙️ Podcast 設定選項</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>腳本長度</h3>
+                        <p>短 (3-5分鐘)</p>
+                        <p>中 (8-12分鐘)</p>
+                        <p>長 (15-20分鐘)</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>語言風格</h3>
+                        <p>正式 / 輕鬆 / 教育</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>主持人設定</h3>
+                        <p>Host A 語音選擇</p>
+                        <p>Host B 語音選擇</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>輸出格式</h3>
+                        <p>MP3 音檔下載</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🎯 Part 6 總結</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>腳本生成</h3>
+                        <p>專業 Prompt 生成自然對話</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>語音合成</h3>
+                        <p>Edge TTS 免費高品質</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>雙主持人</h3>
+                        <p>男女聲交替對話</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>輸出</h3>
+                        <p>MP3 音檔下載</p>
+                    </div>
+                </div>
+                <div class="box info" style="margin-top: 30px;">
+                    <strong>下一步：</strong>Part 7 將介紹部署與實戰操作！
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="nav-arrow prev-arrow" id="prevBtn" onclick="changeSlide(-1)">❮</button>
+    <button class="nav-arrow next-arrow" id="nextBtn" onclick="changeSlide(1)">❯</button>
+    <div class="indicators" id="indicatorContainer"></div>
+
+    <script>
+        let currentSlide = 0; const slides = document.querySelectorAll('.slide'); const totalSlides = slides.length;
+        function init() { createIndicators(); showSlide(0); document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') changeSlide(-1); if (e.key === 'ArrowRight') changeSlide(1); }); }
+        function createIndicators() { const c = document.getElementById('indicatorContainer'); for (let i = 0; i < totalSlides; i++) { const d = document.createElement('div'); d.className = 'dot'; d.onclick = () => goToSlide(i); c.appendChild(d); } }
+        function showSlide(i) { if (i < 0) i = 0; if (i >= totalSlides) i = totalSlides - 1; slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i)); document.getElementById('prevBtn').disabled = i === 0; document.getElementById('nextBtn').disabled = i === totalSlides - 1; }
+        function changeSlide(d) { showSlide(currentSlide + d); } function goToSlide(i) { showSlide(i); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+        init();
+    </script>
+</body>
+</html>
