@@ -127,11 +127,11 @@ python app.py
 ```bash
 npm run dev
 ```
-前端運行於 http://localhost:5173
+前端運行於 http://localhost:3000
 
 ### 步驟 6：開始使用
 
-1. 開啟瀏覽器訪問 `http://localhost:5173`
+1. 開啟瀏覽器訪問 `http://localhost:3000`
 2. 建立筆記本
 3. 新增來源（上傳文件、貼上網址、YouTube 連結等）
 4. 與 AI 對話，AI 會根據來源內容回答
