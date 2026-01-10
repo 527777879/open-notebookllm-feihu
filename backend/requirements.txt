@@ -1,0 +1,46 @@
+# Flask core
+Flask==3.0.0
+Flask-CORS==4.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+
+# Environment
+python-dotenv==1.0.0
+
+# AI API - Multi-provider support
+google-generativeai>=0.3.0
+google-genai>=1.0.0
+openai>=1.0.0
+anthropic>=0.39.0
+groq>=0.4.0
+ollama>=0.1.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Document parsing
+PyPDF2>=3.0.0
+python-docx>=1.0.0
+openpyxl>=3.1.0
+
+# Web scraping
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+trafilatura>=1.6.0
+
+# YouTube
+youtube-transcript-api>=0.6.0
+yt-dlp>=2024.1.0
+
+# Audio processing
+pydub>=0.25.0
+
+# Vector operations
+numpy>=1.26.0
+
+# Utilities
+tenacity>=8.2.0
+pydantic>=2.0.0
+
+# Production
+gunicorn>=21.0.0
