@@ -66,8 +66,8 @@
                     本地部署、雲端部署、實戰操作流程
                 </h2>
                 <div style="margin-top: 40px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-                    <span class="highlight">快速啟動</span>
-                    <span class="highlight">Docker 部署</span>
+                    <span class="highlight">Python 後端</span>
+                    <span class="highlight">React 前端</span>
                     <span class="highlight">實戰操作</span>
                 </div>
             </div>
@@ -77,41 +77,21 @@
             <div class="content-card">
                 <h2>🖥️ 本地開發部署</h2>
                 <h3>步驟 1：Clone 專案</h3>
-                <pre>git clone https://github.com/your-repo/open-notebookllm.git
+                <pre>git clone https://github.com/ChatGPT3a01/open-notebookllm.git
 cd open-notebookllm</pre>
-                <h3>步驟 2：後端啟動</h3>
+                <h3>步驟 2：後端啟動（終端機 1）</h3>
                 <pre>cd backend
 python -m venv venv
 venv\Scripts\activate  # Windows
+# source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
-python main.py</pre>
-                <h3>步驟 3：前端啟動</h3>
+python app.py</pre>
+                <h3>步驟 3：前端啟動（終端機 2）</h3>
                 <pre>cd frontend
 npm install
 npm run dev</pre>
-            </div>
-        </div>
-
-        <div class="slide">
-            <div class="content-card">
-                <h2>🐳 Docker 部署</h2>
-                <h3>一鍵啟動</h3>
-                <pre>docker-compose up -d</pre>
-                <h3>docker-compose.yml 結構</h3>
-                <div class="concept-grid">
-                    <div class="concept-card">
-                        <h3>backend</h3>
-                        <p>FastAPI 服務</p>
-                        <p>Port: 8000</p>
-                    </div>
-                    <div class="concept-card">
-                        <h3>frontend</h3>
-                        <p>React 前端</p>
-                        <p>Port: 3000</p>
-                    </div>
-                </div>
-                <div class="box info">
-                    <strong>環境變數：</strong>在 docker-compose.yml 中設定 API Key
+                <div class="box success">
+                    <strong>完成！</strong>後端運行於 http://localhost:5000，前端運行於 http://localhost:3000
                 </div>
             </div>
         </div>
@@ -210,7 +190,7 @@ OPENAI_IMAGE_API_KEY=sk-xxx</pre>
                     <div class="concept-card">
                         <h3>Render</h3>
                         <p>免費層可用</p>
-                        <p>支援 Docker 部署</p>
+                        <p>支援 Python 部署</p>
                     </div>
                     <div class="concept-card">
                         <h3>AWS / GCP</h3>
