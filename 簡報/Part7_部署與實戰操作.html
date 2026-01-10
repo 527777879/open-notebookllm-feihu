@@ -367,6 +367,546 @@ OPENAI_IMAGE_API_KEY=sk-xxx</pre>
 
         <div class="slide">
             <div class="content-card">
+                <h2>🔧 階段一：後端基礎架構提示詞</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請幫我建立 Open NotebookLLM 後端基礎架構。
+
+【目錄結構】
+backend/
+├── app.py                 # Flask 應用入口
+├── config.py              # 環境變數配置
+├── requirements.txt       # Python 依賴
+├── models/
+│   ├── __init__.py
+│   ├── database.py        # SQLAlchemy 初始化
+│   ├── notebook.py        # Notebook Model
+│   ├── source.py          # Source + SourceChunk Model
+│   ├── chat.py            # Chat Model
+│   └── studio_output.py   # StudioOutput Model
+├── services/
+│   ├── ai_providers/
+│   │   ├── __init__.py
+│   │   ├── base_provider.py    # 抽象基類
+│   │   ├── gemini_provider.py
+│   │   ├── openai_provider.py
+│   │   ├── anthropic_provider.py
+│   │   ├── ollama_provider.py
+│   │   ├── groq_provider.py
+│   │   └── provider_factory.py # 工廠模式建立 Provider
+│   ├── rag_service.py
+│   ├── studio_service.py
+│   └── podcast_service.py
+└── controllers/
+    ├── notebook_controller.py
+    ├── source_controller.py
+    ├── chat_controller.py
+    └── studio_controller.py
+
+【app.py 實現要求】
+- Flask 應用初始化
+- CORS 設定允許前端跨域
+- 註冊所有 Blueprint
+- 資料庫初始化
+- 錯誤處理中間件
+
+【config.py 實現要求】
+- 從 .env 讀取環境變數
+- AI_PROVIDER 選擇（gemini/openai/anthropic/ollama/groq/deepseek）
+- 各提供商的 API_KEY 和 MODEL 設定
+- 資料庫路徑設定
+- 上傳檔案路徑設定
+
+【database.py 實現要求】
+- SQLAlchemy 初始化
+- 建立 db 實例
+- init_app() 方法綁定 Flask app
+
+請產生完整的程式碼，包含所有 import 和詳細註解。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段一續：AI Provider 抽象層提示詞</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請實現 AI Provider 抽象層，使用策略模式。
+
+【base_provider.py】
+from abc import ABC, abstractmethod
+from typing import Generator, List, Optional
+
+class BaseAIProvider(ABC):
+    """AI 提供商抽象基類"""
+
+    @abstractmethod
+    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """同步生成文字回應"""
+        pass
+
+    @abstractmethod
+    def generate_stream(self, prompt: str, system_prompt: Optional[str] = None) -> Generator[str, None, None]:
+        """串流生成文字回應，用於 SSE"""
+        pass
+
+    @abstractmethod
+    def generate_embedding(self, text: str) -> List[float]:
+        """生成文字的向量嵌入，用於 RAG 搜尋"""
+        pass
+
+    def generate_image(self, prompt: str) -> Optional[str]:
+        """生成圖片，回傳 base64 編碼（可選實現）"""
+        return None
+
+    def supports_embedding(self) -> bool:
+        """是否支援嵌入向量"""
+        return True
+
+    def supports_image(self) -> bool:
+        """是否支援圖片生成"""
+        return False
+
+【gemini_provider.py 實現要求】
+- 使用 google-generativeai 套件
+- generate(): 呼叫 model.generate_content()
+- generate_stream(): 呼叫 model.generate_content(stream=True)
+- generate_embedding(): 使用 embedding-001 模型
+- generate_image(): 使用 Imagen 模型
+- 錯誤處理與重試機制
+
+【openai_provider.py 實現要求】
+- 使用 openai 套件
+- generate(): 呼叫 client.chat.completions.create()
+- generate_stream(): 設定 stream=True
+- generate_embedding(): 使用 text-embedding-3-small
+- generate_image(): 使用 DALL-E 3
+
+【ollama_provider.py 實現要求】
+- 使用 requests 呼叫本地 Ollama API (http://localhost:11434)
+- generate(): POST /api/generate
+- generate_stream(): POST /api/generate with stream=True
+- generate_embedding(): POST /api/embeddings
+
+【provider_factory.py】
+def get_provider(provider_name: str = None) -> BaseAIProvider:
+    """根據設定建立對應的 Provider 實例"""
+    # 從 config 讀取，支援動態切換
+
+請產生每個 Provider 的完整實現程式碼。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段二：RAG 服務完整實現提示詞</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請實現完整的 RAG (Retrieval-Augmented Generation) 服務。
+
+【rag_service.py 類別結構】
+class RAGService:
+    def __init__(self, ai_provider: BaseAIProvider):
+        self.provider = ai_provider
+
+    # ===== 文件解析 =====
+    def parse_pdf(self, file_path: str) -> str:
+        """使用 pdfplumber 解析 PDF，保留結構"""
+
+    def parse_docx(self, file_path: str) -> str:
+        """使用 python-docx 解析 Word"""
+
+    def parse_excel(self, file_path: str) -> str:
+        """使用 pandas 解析 Excel/CSV，轉為表格文字"""
+
+    def fetch_webpage(self, url: str) -> str:
+        """使用 BeautifulSoup 擷取網頁內容，移除導航/廣告"""
+
+    def fetch_youtube(self, url: str) -> str:
+        """使用 youtube-transcript-api 取得字幕"""
+
+    def transcribe_audio(self, file_path: str) -> str:
+        """使用 Whisper API 語音轉文字"""
+
+    # ===== 文字分割 =====
+    def split_into_chunks(self, text: str, chunk_size: int = 800, overlap: int = 100) -> List[str]:
+        """
+        智能分割文字：
+        1. 優先在段落邊界分割
+        2. 其次在句子邊界分割
+        3. 保持 overlap 確保上下文連貫
+        """
+
+    # ===== 向量嵌入 =====
+    def generate_embeddings(self, chunks: List[str]) -> List[List[float]]:
+        """批次生成向量嵌入"""
+
+    def store_chunks(self, source_id: int, chunks: List[str], embeddings: List[List[float]]):
+        """儲存 chunks 和 embeddings 到資料庫"""
+
+    # ===== 搜尋功能 =====
+    def fulltext_search(self, query: str, notebook_id: int, limit: int = 10) -> List[SourceChunk]:
+        """SQLite FTS5 全文搜尋"""
+
+    def vector_search(self, query: str, notebook_id: int, limit: int = 10) -> List[SourceChunk]:
+        """向量相似度搜尋（餘弦相似度）"""
+
+    def hybrid_search(self, query: str, notebook_id: int, limit: int = 10) -> List[SourceChunk]:
+        """
+        混合搜尋 + RRF 融合：
+        1. 執行全文搜尋，取得排名
+        2. 執行向量搜尋，取得排名
+        3. RRF 公式：score = Σ 1/(k + rank)，k=60
+        4. 去重合併結果
+        """
+
+    def expand_query(self, query: str) -> str:
+        """使用 LLM 擴展查詢，生成同義詞和相關詞"""
+
+    def rerank_results(self, query: str, chunks: List[SourceChunk]) -> List[SourceChunk]:
+        """使用 LLM 對結果重新排序"""
+
+【餘弦相似度計算】
+def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
+    dot_product = sum(a * b for a, b in zip(vec1, vec2))
+    norm1 = sum(a * a for a in vec1) ** 0.5
+    norm2 = sum(b * b for b in vec2) ** 0.5
+    return dot_product / (norm1 * norm2) if norm1 and norm2 else 0
+
+請產生完整的 RAG 服務程式碼，包含所有方法的實現。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段三：工作室服務提示詞 (1/2)</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請實現工作室服務 studio_service.py。
+
+【摘要生成】
+def generate_summary(self, sources: List[Source]) -> str:
+    prompt = f"""
+請根據以下內容生成一份結構化摘要：
+
+{combined_content}
+
+要求：
+1. 使用 Markdown 格式
+2. 包含：概述、關鍵要點（條列）、重要細節、結論
+3. 保持客觀，不添加原文沒有的資訊
+4. 長度約 500-800 字
+"""
+
+【心智圖生成】
+def generate_mindmap(self, sources: List[Source]) -> str:
+    prompt = f"""
+請根據以下內容生成 Mermaid 心智圖：
+
+{combined_content}
+
+要求：
+1. 使用 Mermaid mindmap 語法
+2. 中心主題放在根節點
+3. 主要概念作為第一層分支（3-5個）
+4. 每個主要概念下有 2-4 個子節點
+5. 節點文字簡潔（5-15字）
+
+格式範例：
+mindmap
+  root((主題))
+    概念A
+      細節A1
+      細節A2
+    概念B
+      細節B1
+"""
+
+【學習卡生成】
+def generate_flashcards(self, sources: List[Source], count: int, difficulty: str) -> List[dict]:
+    prompt = f"""
+請根據以下內容生成 {count} 張學習卡：
+
+{combined_content}
+
+難度：{difficulty}（簡單=記憶/理解、中等=應用/分析、困難=評估/創造）
+
+回傳 JSON 格式：
+[
+  {{
+    "question": "問題內容",
+    "answer": "答案內容",
+    "hint": "提示（可選）",
+    "bloom_level": "記憶|理解|應用|分析|評估|創造",
+    "difficulty": "簡單|中等|困難"
+  }}
+]
+
+要求：
+1. 問題明確具體
+2. 答案完整但簡潔
+3. 涵蓋內容的不同面向
+4. 符合 Bloom 認知層次
+"""</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段三：工作室服務提示詞 (2/2)</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">【測驗生成】
+def generate_quiz(self, sources: List[Source], question_types: List[str], count: int) -> List[dict]:
+    prompt = f"""
+請根據以下內容生成測驗題目：
+
+{combined_content}
+
+題型要求：{question_types}（選擇題/判斷題/填空題/配對題/簡答題）
+題目數量：{count}
+
+回傳 JSON 格式：
+[
+  {{
+    "type": "choice",
+    "question": "問題",
+    "options": ["A選項", "B選項", "C選項", "D選項"],
+    "answer": "A",
+    "explanation": "解析"
+  }},
+  {{
+    "type": "true_false",
+    "question": "敘述",
+    "answer": true,
+    "explanation": "解析"
+  }},
+  {{
+    "type": "fill_blank",
+    "question": "_____ 是一種...",
+    "answer": "正確答案",
+    "explanation": "解析"
+  }},
+  {{
+    "type": "matching",
+    "pairs": [["左1", "右1"], ["左2", "右2"]],
+    "explanation": "解析"
+  }},
+  {{
+    "type": "short_answer",
+    "question": "問題",
+    "answer": "參考答案",
+    "key_points": ["要點1", "要點2"]
+  }}
+]
+"""
+
+【資訊圖表生成】
+def generate_infographic(self, sources: List[Source]) -> dict:
+    prompt = f"""
+分析以下內容，找出適合視覺化的數據：
+
+{combined_content}
+
+回傳 JSON 格式：
+{{
+  "chart_type": "bar|line|pie|doughnut|radar|scatter|polarArea",
+  "title": "圖表標題",
+  "data": {{
+    "labels": ["標籤1", "標籤2"],
+    "datasets": [{{
+      "label": "數據集名稱",
+      "data": [數值1, 數值2]
+    }}]
+  }},
+  "insights": ["洞察1", "洞察2", "洞察3"],
+  "recommendation": "圖表類型選擇原因"
+}}
+
+選擇圖表類型的原則：
+- 比較類別：bar
+- 趨勢變化：line
+- 佔比分布：pie/doughnut
+- 多維度比較：radar
+- 相關性：scatter
+"""
+
+請產生完整的工作室服務程式碼。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段四：前端元件實現提示詞</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請實現 React + TypeScript 前端。
+
+【目錄結構】
+frontend/src/
+├── api/
+│   └── client.ts          # Axios 封裝 + API 方法
+├── store/
+│   └── useStore.ts        # Zustand 全域狀態
+├── pages/
+│   ├── HomePage.tsx       # 筆記本列表
+│   └── NotebookPage.tsx   # 筆記本詳情（來源+對話+工作室）
+├── components/
+│   ├── Sidebar.tsx        # 左側筆記本列表
+│   ├── SourcePanel.tsx    # 來源管理面板
+│   ├── ChatPanel.tsx      # 對話面板（含 SSE 串流）
+│   ├── StudioPanel.tsx    # 工作室面板
+│   ├── MindmapRenderer.tsx    # Mermaid 心智圖渲染
+│   ├── FlashcardRenderer.tsx  # 翻卡元件
+│   ├── QuizRenderer.tsx       # 測驗互動元件
+│   └── ChartRenderer.tsx      # Chart.js 圖表渲染
+└── types/
+    └── index.ts           # TypeScript 型別定義
+
+【ChatPanel.tsx SSE 串流實現】
+const handleSendMessage = async (message: string) => {
+  // 1. 新增使用者訊息到對話列表
+  // 2. 建立 EventSource 連接
+  const eventSource = new EventSource(
+    `/api/notebooks/${notebookId}/chat/stream?message=${encodeURIComponent(message)}`
+  );
+
+  // 3. 監聽串流訊息
+  eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'content') {
+      // 累加回應內容
+      setCurrentResponse(prev => prev + data.content);
+    } else if (data.type === 'sources') {
+      // 設定引用來源
+      setSources(data.sources);
+    } else if (data.type === 'done') {
+      // 完成，關閉連接
+      eventSource.close();
+    }
+  };
+
+  eventSource.onerror = () => {
+    eventSource.close();
+  };
+};
+
+【FlashcardRenderer.tsx 翻卡實現】
+- 卡片正面顯示問題
+- 點擊翻轉顯示答案
+- 顯示 Bloom 層次標籤和難度
+- 上一張/下一張導航
+
+【ChartRenderer.tsx 圖表實現】
+- 使用 react-chartjs-2
+- 根據 chart_type 動態選擇圖表元件
+- 支援 7 種圖表類型
+- 顯示洞察要點
+
+請產生完整的前端程式碼。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🔧 階段五：Podcast 生成完整提示詞</h2>
+                <pre style="font-size: 12px; line-height: 1.4; max-height: 70vh; overflow-y: auto;">請實現 Podcast 生成服務 podcast_service.py。
+
+【腳本生成 Prompt】
+def generate_script(self, sources: List[Source], duration: str, style: str) -> List[dict]:
+    prompt = f"""
+你是一位專業的 Podcast 腳本作家。請根據以下內容，撰寫一段雙主持人對話腳本。
+
+【來源內容】
+{combined_content}
+
+【節目設定】
+- 時長：{duration}（短=3-5分鐘/中=8-12分鐘/長=15-20分鐘）
+- 風格：{style}（輕鬆活潑/專業正式/教育科普）
+- 主持人：Host A（主導）、Host B（補充提問）
+
+【腳本要求】
+1. 開場：打招呼、介紹今天主題（30秒）
+2. 主體：深入討論內容（按時長調整）
+   - Host A 講解核心概念
+   - Host B 適時提問、舉例、補充
+   - 加入生活化比喻讓內容易懂
+   - 自然的語氣詞（嗯、對、沒錯）
+3. 結尾：總結要點、預告下集、告別（30秒）
+
+【對話風格】
+- 避免生硬朗讀感
+- 主持人之間有互動
+- 適當加入幽默元素
+- 解釋專業術語
+
+回傳 JSON 格式：
+[
+  {{"speaker": "A", "text": "大家好，歡迎收聽..."}},
+  {{"speaker": "B", "text": "嗨，今天要聊的主題超有趣..."}},
+  ...
+]
+"""
+
+【TTS 語音合成 - Edge TTS】
+import edge_tts
+import asyncio
+
+async def synthesize_speech(self, text: str, voice: str, output_path: str):
+    \"\"\"
+    Edge TTS 語音合成
+
+    推薦語音：
+    - 中文台灣：zh-TW-HsiaoChenNeural (女), zh-TW-YunJheNeural (男)
+    - 中文中國：zh-CN-XiaoxiaoNeural (女), zh-CN-YunxiNeural (男)
+    - 英文：en-US-JennyNeural (女), en-US-GuyNeural (男)
+    \"\"\"
+    communicate = edge_tts.Communicate(text, voice)
+    await communicate.save(output_path)
+
+【音檔合併】
+from pydub import AudioSegment
+
+def merge_audio_files(self, audio_files: List[str], output_path: str):
+    \"\"\"合併多個音檔，加入適當停頓\"\"\"
+    combined = AudioSegment.empty()
+    pause = AudioSegment.silent(duration=500)  # 500ms 停頓
+
+    for file in audio_files:
+        audio = AudioSegment.from_mp3(file)
+        combined += audio + pause
+
+    combined.export(output_path, format="mp3")
+
+【完整生成流程】
+def generate_podcast(self, notebook_id: int, settings: dict) -> str:
+    # 1. 取得來源內容
+    # 2. 生成對話腳本
+    # 3. 為每段對話生成語音（Host A/B 用不同聲音）
+    # 4. 合併所有音檔
+    # 5. 儲存並回傳檔案路徑
+
+請產生完整的 Podcast 服務程式碼。</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>💡 AI 輔助開發最佳實踐</h2>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>1. 分階段開發</h3>
+                        <p>不要一次要求 AI 產生整個專案，按階段逐步實現並測試。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>2. 提供上下文</h3>
+                        <p>告訴 AI 已經完成的部分，讓它理解整體架構再寫新功能。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>3. 要求完整程式碼</h3>
+                        <p>明確要求「產生完整可執行的程式碼，包含所有 import」。</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>4. 錯誤修正</h3>
+                        <p>遇到錯誤時，貼上完整錯誤訊息讓 AI 協助除錯。</p>
+                    </div>
+                </div>
+                <div class="box info" style="margin-top: 20px;">
+                    <strong>推薦工具：</strong>Claude Code CLI / Cursor / GitHub Copilot - 可直接在編輯器中與 AI 協作開發！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
                 <h2>🎯 課程總結</h2>
                 <div class="concept-grid">
                     <div class="concept-card">
