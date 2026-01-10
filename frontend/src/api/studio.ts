@@ -7,7 +7,8 @@ import type {
   PodcastVoice,
   PodcastStyle,
   TTSResponse,
-  DifficultyLevel
+  DifficultyLevel,
+  DiagramType
 } from '@/types'
 
 // ==================== 工作室輸出 ====================
@@ -88,6 +89,23 @@ export const generateInfographic = (
   apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/infographic`, {
     source_ids: sourceIds,
     with_ai_image: withAiImage ?? false,
+  })
+
+// 生成流程圖（Draw.io 格式）
+export const generateFlowchart = (notebookId: string, sourceIds?: string[]) =>
+  apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/flowchart`, {
+    source_ids: sourceIds,
+  })
+
+// 生成架構圖（Draw.io 格式）
+export const generateDiagram = (
+  notebookId: string,
+  sourceIds?: string[],
+  diagramType?: DiagramType
+) =>
+  apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/diagram`, {
+    source_ids: sourceIds,
+    diagram_type: diagramType || 'auto',
   })
 
 // 取得單一輸出
@@ -177,6 +195,7 @@ export interface StudioOutputOptions {
   withImages?: boolean
   difficulty?: DifficultyLevel
   withAiImage?: boolean
+  diagramType?: DiagramType
 }
 
 // 根據類型調用對應的生成 API
@@ -191,6 +210,10 @@ export const generateStudioOutput = (
       return generateSummary(notebookId, sourceIds)
     case 'mindmap':
       return generateMindmap(notebookId, sourceIds)
+    case 'flowchart':
+      return generateFlowchart(notebookId, sourceIds)
+    case 'diagram':
+      return generateDiagram(notebookId, sourceIds, options?.diagramType)
     case 'flashcards':
       return generateFlashcards(notebookId, options?.count, sourceIds, options?.difficulty)
     case 'quiz':

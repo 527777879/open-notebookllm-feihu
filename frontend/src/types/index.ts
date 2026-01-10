@@ -74,7 +74,7 @@ export interface Note {
   updated_at: string
 }
 
-// 工作室輸出類型 - 擴充 Podcast
+// 工作室輸出類型 - 擴充 Podcast + Draw.io
 export type StudioOutputType =
   | 'summary'
   | 'mindmap'
@@ -85,6 +85,8 @@ export type StudioOutputType =
   | 'presentation'
   | 'infographic'
   | 'podcast'
+  | 'flowchart'
+  | 'diagram'
 
 export interface StudioOutput {
   id: string
@@ -342,4 +344,25 @@ export interface TTSRequest {
 export interface TTSResponse {
   audio_base64: string
   format: string
+}
+
+// Draw.io 圖表數據
+export type DiagramType = 'auto' | 'architecture' | 'sequence' | 'class' | 'er' | 'network'
+
+export interface DiagramData {
+  title: string
+  description?: string
+  xml: string  // draw.io mxGraph XML
+  type: 'flowchart' | 'diagram'
+  diagram_type?: DiagramType
+  elements?: DiagramElement[]
+}
+
+export interface DiagramElement {
+  id: string
+  type: 'node' | 'edge'
+  label?: string
+  shape?: string
+  source?: string  // For edges
+  target?: string  // For edges
 }

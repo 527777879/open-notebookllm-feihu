@@ -366,6 +366,127 @@ def generate_infographic(notebook_id):
     })
 
 
+@studio_bp.route('/<notebook_id>/studio/flowchart', methods=['POST'])
+def generate_flowchart(notebook_id):
+    """
+    生成流程圖（draw.io 格式）
+
+    Request body:
+    {
+        "source_ids": ["id1", "id2"]  // 可選，指定來源
+    }
+
+    Response:
+    {
+        "data": {
+            "title": "流程圖標題",
+            "description": "說明",
+            "xml": "<mxGraphModel>...</mxGraphModel>",
+            "type": "flowchart"
+        }
+    }
+    """
+    notebook = Notebook.query.get(notebook_id)
+    if not notebook:
+        return jsonify({'success': False, 'error': '筆記本不存在'}), 404
+
+    data = request.get_json() or {}
+    source_ids = data.get('source_ids')
+
+    studio_service = get_studio_service()
+    result = studio_service.generate_flowchart(
+        source_ids=source_ids,
+        notebook_id=notebook_id
+    )
+
+    if 'error' in result:
+        return jsonify({'success': False, 'error': result['error']}), 400
+
+    title = result.get('title', '流程圖')
+
+    output = StudioOutput(
+        notebook_id=notebook_id,
+        type='flowchart',
+        title=title,
+        data=result,
+        source_ids=source_ids
+    )
+    db.session.add(output)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': output.to_dict()
+    })
+
+
+@studio_bp.route('/<notebook_id>/studio/diagram', methods=['POST'])
+def generate_diagram(notebook_id):
+    """
+    生成架構圖/系統圖（draw.io 格式）
+
+    Request body:
+    {
+        "source_ids": ["id1", "id2"],  // 可選，指定來源
+        "diagram_type": "auto"          // 可選，圖表類型: auto/architecture/sequence/class/er/network
+    }
+
+    Response:
+    {
+        "data": {
+            "title": "架構圖標題",
+            "description": "說明",
+            "xml": "<mxGraphModel>...</mxGraphModel>",
+            "type": "diagram",
+            "diagram_type": "architecture"
+        }
+    }
+    """
+    notebook = Notebook.query.get(notebook_id)
+    if not notebook:
+        return jsonify({'success': False, 'error': '筆記本不存在'}), 404
+
+    data = request.get_json() or {}
+    source_ids = data.get('source_ids')
+    diagram_type = data.get('diagram_type', 'auto')
+
+    studio_service = get_studio_service()
+    result = studio_service.generate_diagram(
+        source_ids=source_ids,
+        notebook_id=notebook_id,
+        diagram_type=diagram_type
+    )
+
+    if 'error' in result:
+        return jsonify({'success': False, 'error': result['error']}), 400
+
+    title = result.get('title', '架構圖')
+    actual_type = result.get('diagram_type', diagram_type)
+    type_labels = {
+        'architecture': '架構圖',
+        'sequence': '時序圖',
+        'class': '類別圖',
+        'er': 'ER 圖',
+        'network': '網路圖',
+        'auto': '系統圖'
+    }
+
+    output = StudioOutput(
+        notebook_id=notebook_id,
+        type='diagram',
+        title=f"{title} ({type_labels.get(actual_type, actual_type)})",
+        data=result,
+        source_ids=source_ids
+    )
+    db.session.add(output)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': output.to_dict()
+    })
+
+
 @studio_bp.route('/<notebook_id>/studio/generate', methods=['POST'])
 def generate_output(notebook_id):
     """通用生成端點"""
@@ -393,6 +514,8 @@ def generate_output(notebook_id):
         'datatable': lambda: studio_service.generate_datatable(source_ids=source_ids, notebook_id=notebook_id),
         'presentation': lambda: studio_service.generate_presentation(source_ids=source_ids, notebook_id=notebook_id, slide_count=data.get('slide_count', 8), with_images=data.get('with_images', True)),
         'infographic': lambda: studio_service.generate_infographic(source_ids=source_ids, notebook_id=notebook_id, with_ai_image=data.get('with_ai_image', False)),
+        'flowchart': lambda: studio_service.generate_flowchart(source_ids=source_ids, notebook_id=notebook_id),
+        'diagram': lambda: studio_service.generate_diagram(source_ids=source_ids, notebook_id=notebook_id, diagram_type=data.get('diagram_type', 'auto')),
     }
 
     if output_type not in type_methods:
@@ -413,6 +536,8 @@ def generate_output(notebook_id):
         'datatable': '資料表',
         'presentation': '簡報',
         'infographic': '資訊圖表',
+        'flowchart': '流程圖',
+        'diagram': '架構圖',
     }
 
     output = StudioOutput(

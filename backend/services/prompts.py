@@ -815,6 +815,282 @@ PPT 文字請使用全繁體中文。"""
 
     PRESENTATION_TITLE_PAGE_DESIGN = """**注意：當前頁面為 PPT 的封面頁，請你採用專業的封面設計美學技巧，務必凸顯出頁面標題，分清主次，確保一下就能抓住觀眾的注意力。**"""
 
+    # ============ Draw.io 流程圖/架構圖生成提示詞 ============
+
+    FLOWCHART = """根據以下內容生成一份流程圖，使用 draw.io 的 mxGraph XML 格式。
+
+## 來源內容
+
+{content}
+
+---
+
+## 任務說明
+
+分析來源內容，識別其中的流程、步驟或決策邏輯，並生成相應的流程圖。
+
+## draw.io XML 格式規範
+
+### 基本結構
+生成的 XML 必須是完整的 mxGraphModel 格式：
+
+```xml
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <!-- 圖形元素從 id="2" 開始 -->
+  </root>
+</mxGraphModel>
+```
+
+### 形狀類型
+
+1. **矩形（步驟/過程）**
+```xml
+<mxCell id="2" value="步驟名稱" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+  <mxGeometry x="100" y="100" width="120" height="60" as="geometry"/>
+</mxCell>
+```
+
+2. **菱形（決策/判斷）**
+```xml
+<mxCell id="3" value="條件?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+  <mxGeometry x="100" y="200" width="80" height="80" as="geometry"/>
+</mxCell>
+```
+
+3. **橢圓形（開始/結束）**
+```xml
+<mxCell id="4" value="開始" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+  <mxGeometry x="100" y="50" width="80" height="40" as="geometry"/>
+</mxCell>
+```
+
+4. **平行四邊形（輸入/輸出）**
+```xml
+<mxCell id="5" value="資料輸入" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+  <mxGeometry x="100" y="300" width="120" height="50" as="geometry"/>
+</mxCell>
+```
+
+### 連接線
+
+```xml
+<mxCell id="10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="2" target="3">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+帶標籤的連接線：
+```xml
+<mxCell id="11" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3" target="4">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+### 佈局規則
+
+1. **座標範圍**: x: 50-750, y: 50-550
+2. **間距**: 元素間垂直間距 80-100px，水平間距 150-200px
+3. **對齊**: 同級元素保持對齊
+4. **流向**: 預設從上到下，決策分支向左右展開
+
+### 配色方案
+
+| 元素類型 | fillColor | strokeColor |
+|---------|-----------|-------------|
+| 開始/結束 | #d5e8d4 | #82b366 |
+| 步驟/過程 | #dae8fc | #6c8ebf |
+| 決策/判斷 | #fff2cc | #d6b656 |
+| 輸入/輸出 | #e1d5e7 | #9673a6 |
+| 文件 | #f8cecc | #b85450 |
+
+---
+
+## 輸出格式
+
+請用以下 JSON 格式返回：
+
+```json
+{{
+    "title": "流程圖標題",
+    "description": "流程說明",
+    "xml": "<mxGraphModel>...</mxGraphModel>",
+    "elements": {{
+        "nodes": 8,
+        "edges": 7,
+        "decisions": 2
+    }},
+    "legend": [
+        {{"shape": "ellipse", "meaning": "開始/結束"}},
+        {{"shape": "rectangle", "meaning": "處理步驟"}},
+        {{"shape": "diamond", "meaning": "決策判斷"}}
+    ]
+}}
+```
+
+## 設計要求
+
+1. **所有節點文字必須使用繁體中文**
+2. **邏輯正確**: 流程順序合理，決策分支完整
+3. **清晰易讀**: 避免線條交叉，保持佈局整潔
+4. **完整性**: 必須有明確的開始和結束節點
+5. **適當複雜度**: 根據內容複雜度決定節點數量（5-15 個節點）"""
+
+    DIAGRAM = """根據以下內容生成一份架構圖/系統圖，使用 draw.io 的 mxGraph XML 格式。
+
+## 來源內容
+
+{content}
+
+---
+
+## 任務說明
+
+分析來源內容，識別其中的系統架構、組件關係或層次結構，並生成相應的架構圖。
+
+## draw.io XML 格式規範
+
+### 基本結構
+```xml
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <!-- 圖形元素從 id="2" 開始 -->
+  </root>
+</mxGraphModel>
+```
+
+### 常用形狀
+
+1. **矩形容器（系統/模組）**
+```xml
+<mxCell id="2" value="系統名稱" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+  <mxGeometry x="100" y="100" width="160" height="80" as="geometry"/>
+</mxCell>
+```
+
+2. **群組容器（用於包含子元素）**
+```xml
+<mxCell id="3" value="群組名稱" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+  <mxGeometry x="50" y="50" width="200" height="150" as="geometry"/>
+</mxCell>
+```
+
+3. **圓柱體（資料庫）**
+```xml
+<mxCell id="4" value="資料庫" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+  <mxGeometry x="100" y="200" width="80" height="100" as="geometry"/>
+</mxCell>
+```
+
+4. **雲朵（外部服務/雲端）**
+```xml
+<mxCell id="5" value="雲端服務" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+  <mxGeometry x="300" y="100" width="120" height="80" as="geometry"/>
+</mxCell>
+```
+
+5. **六邊形（微服務/API）**
+```xml
+<mxCell id="6" value="API" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+  <mxGeometry x="200" y="150" width="100" height="60" as="geometry"/>
+</mxCell>
+```
+
+6. **文件形狀**
+```xml
+<mxCell id="7" value="文件" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+  <mxGeometry x="100" y="300" width="80" height="60" as="geometry"/>
+</mxCell>
+```
+
+### 連接線類型
+
+1. **直線箭頭（資料流）**
+```xml
+<mxCell id="20" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="2" target="4">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+2. **虛線箭頭（依賴關係）**
+```xml
+<mxCell id="21" value="" style="endArrow=classic;html=1;dashed=1;rounded=0;" edge="1" parent="1" source="2" target="3">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+3. **雙向箭頭（雙向通訊）**
+```xml
+<mxCell id="22" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="2" target="5">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+### 佈局模式
+
+1. **分層架構**（上下排列）
+   - 使用者介面層（頂部）
+   - 業務邏輯層（中間）
+   - 資料存取層（底部）
+
+2. **微服務架構**（左右分布）
+   - 閘道在左側
+   - 各服務水平排列
+   - 資料庫在右側或底部
+
+3. **客戶端-伺服器架構**
+   - 客戶端在左側
+   - 伺服器在右側
+   - 中間顯示通訊協定
+
+### 配色方案
+
+| 元素類型 | fillColor | strokeColor | 用途 |
+|---------|-----------|-------------|------|
+| 前端/UI | #dae8fc | #6c8ebf | 使用者介面 |
+| 後端/API | #d5e8d4 | #82b366 | 伺服器邏輯 |
+| 資料庫 | #f8cecc | #b85450 | 資料儲存 |
+| 外部服務 | #fff2cc | #d6b656 | 第三方服務 |
+| 中介軟體 | #e1d5e7 | #9673a6 | 訊息佇列等 |
+| 安全/認證 | #f5f5f5 | #666666 | 安全元件 |
+
+---
+
+## 輸出格式
+
+請用以下 JSON 格式返回：
+
+```json
+{{
+    "title": "架構圖標題",
+    "description": "架構說明（2-3 句話）",
+    "diagram_type": "layered/microservices/client-server/network",
+    "xml": "<mxGraphModel>...</mxGraphModel>",
+    "components": [
+        {{"name": "元件名稱", "type": "frontend/backend/database/service", "description": "元件說明"}}
+    ],
+    "connections": [
+        {{"from": "元件A", "to": "元件B", "type": "data/request/event", "description": "連接說明"}}
+    ]
+}}
+```
+
+## 設計要求
+
+1. **所有文字必須使用繁體中文**
+2. **架構清晰**: 層次分明，關係明確
+3. **適當分組**: 相關元件放在同一區域
+4. **連線規範**:
+   - 實線表示資料流或直接調用
+   - 虛線表示依賴或可選連接
+   - 箭頭方向表示資料/請求流向
+5. **圖例說明**: 提供必要的元件和連線說明
+6. **座標範圍**: 保持在 x: 50-750, y: 50-550 內"""
+
 
 class PodcastPrompts:
     """Podcast 播客生成提示詞"""

@@ -767,6 +767,119 @@ class StudioService:
         }
 
 
+    def generate_flowchart(
+        self,
+        source_ids: Optional[List[str]] = None,
+        notebook_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        生成流程圖（draw.io 格式）
+
+        Args:
+            source_ids: 來源 ID 列表
+            notebook_id: 筆記本 ID
+
+        Returns:
+            流程圖資料，包含 draw.io XML
+        """
+        content = self.get_sources_content(source_ids, notebook_id)
+        if not content:
+            return {"error": "沒有可用的來源內容"}
+
+        ai_service = get_ai_service()
+
+        try:
+            prompt = StudioPrompts.FLOWCHART.format(content=content)
+            result = ai_service.generate_json(prompt)
+
+            # 驗證必要欄位
+            if "xml" not in result:
+                return {"error": "流程圖生成失敗：缺少 XML 資料"}
+
+            if "title" not in result:
+                result["title"] = "流程圖"
+
+            if "elements" not in result:
+                result["elements"] = {"nodes": 0, "edges": 0, "decisions": 0}
+
+            return {
+                "data": result,
+                "xml": result.get("xml", ""),
+                "title": result.get("title", "流程圖"),
+                "description": result.get("description", ""),
+                "type": "flowchart"
+            }
+
+        except Exception as e:
+            logger.error(f"流程圖生成失敗: {e}")
+            return {"error": str(e)}
+
+    def generate_diagram(
+        self,
+        source_ids: Optional[List[str]] = None,
+        notebook_id: Optional[str] = None,
+        diagram_type: str = "auto"
+    ) -> Dict[str, Any]:
+        """
+        生成架構圖/系統圖（draw.io 格式）
+
+        Args:
+            source_ids: 來源 ID 列表
+            notebook_id: 筆記本 ID
+            diagram_type: 圖表類型 (auto/layered/microservices/client-server/network)
+
+        Returns:
+            架構圖資料，包含 draw.io XML
+        """
+        content = self.get_sources_content(source_ids, notebook_id)
+        if not content:
+            return {"error": "沒有可用的來源內容"}
+
+        ai_service = get_ai_service()
+
+        try:
+            prompt = StudioPrompts.DIAGRAM.format(content=content)
+
+            # 如果指定了圖表類型，在提示詞中加入
+            if diagram_type != "auto":
+                type_hints = {
+                    "layered": "請生成分層架構圖（上下排列）",
+                    "microservices": "請生成微服務架構圖（左右分布）",
+                    "client-server": "請生成客戶端-伺服器架構圖",
+                    "network": "請生成網路拓撲圖"
+                }
+                if diagram_type in type_hints:
+                    prompt = f"{type_hints[diagram_type]}\n\n{prompt}"
+
+            result = ai_service.generate_json(prompt)
+
+            # 驗證必要欄位
+            if "xml" not in result:
+                return {"error": "架構圖生成失敗：缺少 XML 資料"}
+
+            if "title" not in result:
+                result["title"] = "架構圖"
+
+            if "components" not in result:
+                result["components"] = []
+
+            if "connections" not in result:
+                result["connections"] = []
+
+            return {
+                "data": result,
+                "xml": result.get("xml", ""),
+                "title": result.get("title", "架構圖"),
+                "description": result.get("description", ""),
+                "diagram_type": result.get("diagram_type", diagram_type),
+                "type": "diagram"
+            }
+
+        except Exception as e:
+            logger.error(f"架構圖生成失敗: {e}")
+            return {"error": str(e)}
+
+
 # 全局實例
 _studio_service: Optional[StudioService] = None
 

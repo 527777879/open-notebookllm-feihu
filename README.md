@@ -176,6 +176,8 @@ npm run dev
 |------|------|----------|
 | 摘要 | 來源內容摘要 | - |
 | 心智圖 | Mermaid 視覺化 | 匯出 SVG、縮放控制 |
+| 流程圖 | Draw.io 流程圖 | 🆕 AI 自動生成、可編輯、匯出 SVG |
+| 架構圖 | Draw.io 架構圖 | 🆕 6 種圖表類型、系統設計視覺化 |
 | 報告 | 結構化報告文件 | - |
 | 學習卡 | 問答學習卡片 | 🆕 Bloom 認知層次、難度分級、提示 |
 | 測驗 | 多元題型測驗 | 🆕 選擇/判斷/填空/配對/簡答 5 種題型 |
@@ -203,6 +205,17 @@ npm run dev
 | Radar（雷達圖） | 多維度比較 |
 | Scatter（散佈圖） | 相關性分析 |
 | PolarArea（極區圖） | 類別比較（變體） |
+
+### 🆕 Draw.io 架構圖支援類型
+
+| 類型 | 說明 |
+|------|------|
+| architecture | 系統架構圖 - 組件關係、服務拓撲 |
+| sequence | 時序圖 - 互動順序、訊息流 |
+| class | 類別圖 - OOP 結構、繼承關係 |
+| er | ER 圖 - 資料庫關係、實體屬性 |
+| network | 網路圖 - 網路拓撲、設備連線 |
+| auto | 自動選擇 - AI 根據內容自動選擇最適合的圖表類型 |
 
 ---
 
@@ -272,6 +285,7 @@ open-notebookllm/
 | 狀態管理 | Zustand |
 | 圖表渲染 | Chart.js + react-chartjs-2 |
 | 心智圖渲染 | Mermaid.js |
+| 流程圖/架構圖 | Draw.io + react-drawio |
 | AI 文字 API | Gemini / OpenAI / Anthropic / Ollama / Groq / DeepSeek |
 | AI 圖片 API | Gemini 多模態 / DALL-E 3 |
 | 語音轉文字 | OpenAI Whisper / Groq Whisper |

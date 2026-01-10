@@ -18,6 +18,8 @@ import {
   Gauge,
   CheckCircle2,
   Lightbulb,
+  GitBranch,
+  Box,
 } from 'lucide-react'
 import { useSourceStore } from '@/store'
 import * as studioApi from '@/api/studio'
@@ -29,6 +31,7 @@ import type {
   PodcastVoice,
   DifficultyLevel,
   InfographicData,
+  DiagramData,
   Flashcard,
   QuizQuestion,
 } from '@/types'
@@ -36,6 +39,7 @@ import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import MindmapRenderer from './MindmapRenderer'
 import ChartRenderer from './ChartRenderer'
+import DiagramRenderer from './DiagramRenderer'
 
 interface StudioPanelProps {
   notebookId: string
@@ -45,6 +49,8 @@ const studioItems = [
   { type: 'summary' as const, icon: Mic, label: '語音摘要', color: 'bg-purple-100 text-purple-600' },
   { type: 'summary' as const, icon: Video, label: '影片摘要', color: 'bg-blue-100 text-blue-600' },
   { type: 'mindmap' as const, icon: Network, label: '心智圖', color: 'bg-green-100 text-green-600' },
+  { type: 'flowchart' as const, icon: GitBranch, label: '流程圖', color: 'bg-teal-100 text-teal-600' },
+  { type: 'diagram' as const, icon: Box, label: '架構圖', color: 'bg-violet-100 text-violet-600' },
   { type: 'report' as const, icon: FileText, label: '報告', color: 'bg-orange-100 text-orange-600' },
   { type: 'flashcards' as const, icon: CreditCard, label: '學習卡', color: 'bg-pink-100 text-pink-600' },
   { type: 'quiz' as const, icon: HelpCircle, label: '測驗', color: 'bg-cyan-100 text-cyan-600' },
@@ -664,6 +670,8 @@ function getResultTitle(type: string): string {
   const titles: Record<string, string> = {
     summary: '摘要',
     mindmap: '心智圖',
+    flowchart: '流程圖',
+    diagram: '架構圖',
     flashcards: '學習卡',
     quiz: '測驗',
     report: '報告',
@@ -941,6 +949,24 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
     if (!mindmap) return <p className="text-gray-500">無法顯示心智圖</p>
 
     return <MindmapRenderer data={mindmap as Parameters<typeof MindmapRenderer>[0]['data']} />
+  }
+
+  // 流程圖顯示（Draw.io）
+  if (type === 'flowchart') {
+    const diagramData = (data as { data?: DiagramData }).data || data as DiagramData
+    if (!diagramData || !diagramData.xml) {
+      return <p className="text-gray-500">無法顯示流程圖</p>
+    }
+    return <DiagramRenderer data={{ ...diagramData, type: 'flowchart' }} />
+  }
+
+  // 架構圖顯示（Draw.io）
+  if (type === 'diagram') {
+    const diagramData = (data as { data?: DiagramData }).data || data as DiagramData
+    if (!diagramData || !diagramData.xml) {
+      return <p className="text-gray-500">無法顯示架構圖</p>
+    }
+    return <DiagramRenderer data={{ ...diagramData, type: 'diagram' }} />
   }
 
   if (type === 'podcast') {
