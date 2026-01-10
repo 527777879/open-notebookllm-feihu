@@ -6,7 +6,8 @@ import type {
   PodcastSpeaker,
   PodcastVoice,
   PodcastStyle,
-  TTSResponse
+  TTSResponse,
+  DifficultyLevel
 } from '@/types'
 
 // ==================== 工作室輸出 ====================
@@ -27,18 +28,30 @@ export const generateMindmap = (notebookId: string, sourceIds?: string[]) =>
     source_ids: sourceIds,
   })
 
-// 生成學習卡
-export const generateFlashcards = (notebookId: string, count?: number, sourceIds?: string[]) =>
+// 生成學習卡（支援難度分級）
+export const generateFlashcards = (
+  notebookId: string,
+  count?: number,
+  sourceIds?: string[],
+  difficulty?: DifficultyLevel
+) =>
   apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/flashcards`, {
     count: count || 10,
     source_ids: sourceIds,
+    difficulty: difficulty || 'mixed',
   })
 
-// 生成測驗
-export const generateQuiz = (notebookId: string, count?: number, sourceIds?: string[]) =>
+// 生成測驗（支援難度分級）
+export const generateQuiz = (
+  notebookId: string,
+  count?: number,
+  sourceIds?: string[],
+  difficulty?: DifficultyLevel
+) =>
   apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/quiz`, {
     count: count || 10,
     source_ids: sourceIds,
+    difficulty: difficulty || 'mixed',
   })
 
 // 生成報告
@@ -66,10 +79,15 @@ export const generatePresentation = (
     with_images: withImages ?? true,
   })
 
-// 生成資訊圖表
-export const generateInfographic = (notebookId: string, sourceIds?: string[]) =>
+// 生成資訊圖表（Chart.js 數據視覺化）
+export const generateInfographic = (
+  notebookId: string,
+  sourceIds?: string[],
+  withAiImage?: boolean
+) =>
   apiClient.post<ApiResponse<StudioOutput>>(`/api/notebooks/${notebookId}/studio/infographic`, {
     source_ids: sourceIds,
+    with_ai_image: withAiImage ?? false,
   })
 
 // 取得單一輸出
@@ -152,12 +170,21 @@ export const textToSpeech = (notebookId: string, text: string, voice?: string, p
 
 // ==================== 工具函數 ====================
 
+// 工作室輸出選項
+export interface StudioOutputOptions {
+  count?: number
+  slideCount?: number
+  withImages?: boolean
+  difficulty?: DifficultyLevel
+  withAiImage?: boolean
+}
+
 // 根據類型調用對應的生成 API
 export const generateStudioOutput = (
   notebookId: string,
   type: StudioOutputType,
   sourceIds?: string[],
-  options?: { count?: number; slideCount?: number; withImages?: boolean }
+  options?: StudioOutputOptions
 ) => {
   switch (type) {
     case 'summary':
@@ -165,9 +192,9 @@ export const generateStudioOutput = (
     case 'mindmap':
       return generateMindmap(notebookId, sourceIds)
     case 'flashcards':
-      return generateFlashcards(notebookId, options?.count, sourceIds)
+      return generateFlashcards(notebookId, options?.count, sourceIds, options?.difficulty)
     case 'quiz':
-      return generateQuiz(notebookId, options?.count, sourceIds)
+      return generateQuiz(notebookId, options?.count, sourceIds, options?.difficulty)
     case 'report':
       return generateReport(notebookId, sourceIds)
     case 'datatable':
@@ -175,7 +202,7 @@ export const generateStudioOutput = (
     case 'presentation':
       return generatePresentation(notebookId, sourceIds, options?.slideCount, options?.withImages)
     case 'infographic':
-      return generateInfographic(notebookId, sourceIds)
+      return generateInfographic(notebookId, sourceIds, options?.withAiImage)
     case 'podcast':
       return generatePodcast(notebookId, { sourceIds })
     default:

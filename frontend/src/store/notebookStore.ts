@@ -18,7 +18,7 @@ interface NotebookState {
   clearError: () => void
 }
 
-export const useNotebookStore = create<NotebookState>((set, get) => ({
+export const useNotebookStore = create<NotebookState>((set, _get) => ({
   notebooks: [],
   currentNotebook: null,
   isLoading: false,

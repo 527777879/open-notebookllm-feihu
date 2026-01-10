@@ -135,18 +135,6 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.4))
   const handleResetZoom = () => setZoom(1)
 
-  // 取得中心主題文字
-  const getCentralText = () => {
-    if (typeof data.central === 'object' && data.central?.text) {
-      return data.central.text
-    } else if (typeof data.central === 'string') {
-      return data.central
-    } else if (data.central_text) {
-      return data.central_text
-    }
-    return '中心主題'
-  }
-
   // 如果渲染失敗，顯示文字版本
   if (renderError) {
     return (
@@ -287,7 +275,7 @@ function TextMindmapView({ data }: { data: MindmapData }) {
         </div>
         {node.children && node.children.length > 0 && (
           <div className="border-l-2 border-gray-200 ml-1">
-            {node.children.map((child, i) => renderNode(child, level + 1))}
+            {node.children.map((child) => renderNode(child, level + 1))}
           </div>
         )}
       </div>
@@ -305,7 +293,7 @@ function TextMindmapView({ data }: { data: MindmapData }) {
         )}
       </div>
       <div className="mt-4">
-        {data.branches?.map((branch, i) => renderNode(branch, 0))}
+        {data.branches?.map((branch) => renderNode(branch, 0))}
       </div>
     </div>
   )

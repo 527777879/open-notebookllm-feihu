@@ -128,33 +128,115 @@ class StudioService:
         for child in children:
             self._add_mermaid_node(lines, child, indent + 1)
 
-    def generate_flashcards(self, count: int = 10, source_ids: Optional[List[str]] = None, notebook_id: Optional[str] = None) -> Dict[str, Any]:
-        """生成學習卡"""
+    def generate_flashcards(
+        self,
+        count: int = 10,
+        source_ids: Optional[List[str]] = None,
+        notebook_id: Optional[str] = None,
+        difficulty: str = "mixed"
+    ) -> Dict[str, Any]:
+        """
+        生成學習卡
+
+        Args:
+            count: 學習卡數量
+            source_ids: 來源 ID 列表
+            notebook_id: 筆記本 ID
+            difficulty: 難度設定 ("easy", "medium", "hard", "mixed")
+
+        Returns:
+            學習卡資料
+        """
         content = self.get_sources_content(source_ids, notebook_id)
         if not content:
             return {"error": "沒有可用的來源內容"}
 
+        # 難度說明映射
+        difficulty_desc = {
+            "easy": "簡單 - 專注於基礎定義和事實記憶",
+            "medium": "中等 - 包含概念應用和比較分析",
+            "hard": "困難 - 強調綜合評估和問題解決",
+            "mixed": "混合 - 包含各難度題目，建議分布：簡單 30%、中等 50%、困難 20%"
+        }
+
         ai_service = get_ai_service()
-        prompt = StudioPrompts.FLASHCARDS.format(content=content, count=count)
+        prompt = StudioPrompts.FLASHCARDS.format(
+            content=content,
+            count=count,
+            difficulty=difficulty_desc.get(difficulty, difficulty_desc["mixed"])
+        )
 
         try:
             result = ai_service.generate_json(prompt)
+
+            # 確保結果包含必要欄位（向後兼容）
+            if "cards" in result:
+                for card in result["cards"]:
+                    if "difficulty" not in card:
+                        card["difficulty"] = "medium"
+                    if "category" not in card:
+                        card["category"] = "一般"
+                    if "cognitive_level" not in card:
+                        card["cognitive_level"] = "理解"
+
             return {"data": result, "type": "flashcards"}
         except Exception as e:
             logger.error(f"學習卡生成失敗: {e}")
             return {"error": str(e)}
 
-    def generate_quiz(self, count: int = 10, source_ids: Optional[List[str]] = None, notebook_id: Optional[str] = None) -> Dict[str, Any]:
-        """生成測驗"""
+    def generate_quiz(
+        self,
+        count: int = 10,
+        source_ids: Optional[List[str]] = None,
+        notebook_id: Optional[str] = None,
+        difficulty: str = "mixed"
+    ) -> Dict[str, Any]:
+        """
+        生成測驗
+
+        Args:
+            count: 測驗題數量
+            source_ids: 來源 ID 列表
+            notebook_id: 筆記本 ID
+            difficulty: 難度設定 ("easy", "medium", "hard", "mixed")
+
+        Returns:
+            測驗資料
+        """
         content = self.get_sources_content(source_ids, notebook_id)
         if not content:
             return {"error": "沒有可用的來源內容"}
 
+        # 難度說明映射
+        difficulty_desc = {
+            "easy": "簡單 - 專注於記憶和理解層次的題目",
+            "medium": "中等 - 包含應用和分析層次的題目",
+            "hard": "困難 - 強調評估和創造層次的題目",
+            "mixed": "混合 - 包含各難度題目，建議分布：簡單 30%、中等 50%、困難 20%"
+        }
+
         ai_service = get_ai_service()
-        prompt = StudioPrompts.QUIZ.format(content=content, count=count)
+        prompt = StudioPrompts.QUIZ.format(
+            content=content,
+            count=count,
+            difficulty=difficulty_desc.get(difficulty, difficulty_desc["mixed"])
+        )
 
         try:
             result = ai_service.generate_json(prompt)
+
+            # 確保結果包含必要欄位（向後兼容）
+            if "questions" in result:
+                for i, q in enumerate(result["questions"]):
+                    if "id" not in q:
+                        q["id"] = i + 1
+                    if "difficulty" not in q:
+                        q["difficulty"] = "medium"
+                    if "cognitive_level" not in q:
+                        q["cognitive_level"] = "理解"
+                    if "points" not in q:
+                        q["points"] = 10
+
             return {"data": result, "type": "quiz"}
         except Exception as e:
             logger.error(f"測驗生成失敗: {e}")
@@ -498,17 +580,19 @@ class StudioService:
     def generate_infographic(
         self,
         source_ids: Optional[List[str]] = None,
-        notebook_id: Optional[str] = None
+        notebook_id: Optional[str] = None,
+        with_ai_image: bool = False
     ) -> Dict[str, Any]:
         """
-        生成資訊圖表
+        生成資訊圖表（Chart.js 數據視覺化）
 
         Args:
             source_ids: 來源 ID 列表
             notebook_id: 筆記本 ID
+            with_ai_image: 是否額外生成 AI 配圖
 
         Returns:
-            資訊圖表資料，包含數據和配圖
+            資訊圖表資料，包含 Chart.js 配置和數據洞察
         """
         content = self.get_sources_content(source_ids, notebook_id)
         if not content:
@@ -516,37 +600,171 @@ class StudioService:
 
         ai_service = get_ai_service()
 
-        # 先提取資料表
+        try:
+            # 使用新的資訊圖表提示詞生成 Chart.js 配置
+            prompt = StudioPrompts.INFOGRAPHIC.format(content=content)
+            result = ai_service.generate_json(prompt)
+
+            # 驗證並補充必要欄位
+            if "charts" not in result:
+                result["charts"] = []
+
+            if "title" not in result:
+                result["title"] = "資訊圖表"
+
+            if "summary" not in result:
+                result["summary"] = {
+                    "key_findings": [],
+                    "recommendations": []
+                }
+
+            # 為每個圖表配置添加預設值
+            for i, chart in enumerate(result.get("charts", [])):
+                if "id" not in chart:
+                    chart["id"] = f"chart{i + 1}"
+                if "type" not in chart:
+                    chart["type"] = "bar"
+                if "config" not in chart:
+                    # 創建基本配置
+                    chart["config"] = {
+                        "type": chart.get("type", "bar"),
+                        "data": {
+                            "labels": [],
+                            "datasets": []
+                        },
+                        "options": {
+                            "responsive": True,
+                            "maintainAspectRatio": False
+                        }
+                    }
+
+            # 可選：生成 AI 裝飾圖片
+            ai_image = None
+            if with_ai_image:
+                try:
+                    title = result.get("title", "資訊圖表")
+                    chart_types = result.get("metadata", {}).get("chart_types", [])
+                    image_prompt = f"Professional data visualization infographic about {title}, featuring {', '.join(chart_types) if chart_types else 'charts and graphs'}, modern flat design, clean layout, business style, abstract data elements"
+
+                    ai_image = ai_service.generate_image(
+                        image_prompt,
+                        size="1024x1024",
+                        style="vivid"
+                    )
+                except Exception as img_error:
+                    logger.warning(f"AI 配圖生成失敗: {img_error}")
+
+            return {
+                "data": result,
+                "charts": result.get("charts", []),
+                "summary": result.get("summary", {}),
+                "image": ai_image,
+                "type": "infographic"
+            }
+
+        except Exception as e:
+            logger.error(f"資訊圖表生成失敗: {e}")
+            # 嘗試降級到舊版本（資料表 + AI 圖片）
+            try:
+                return self._generate_infographic_fallback(source_ids, notebook_id, ai_service)
+            except Exception as fallback_error:
+                logger.error(f"資訊圖表降級生成也失敗: {fallback_error}")
+                return {"error": str(e)}
+
+    def _generate_infographic_fallback(
+        self,
+        source_ids: Optional[List[str]],
+        notebook_id: Optional[str],
+        ai_service
+    ) -> Dict[str, Any]:
+        """
+        資訊圖表降級生成（使用資料表 + AI 圖片）
+        """
         datatable_result = self.generate_datatable(source_ids, notebook_id)
         if "error" in datatable_result:
             return datatable_result
 
-        # 生成資訊圖表配圖
+        data = datatable_result.get("data", {})
+        title = data.get("title", "資訊圖表")
+
+        # 將資料表轉換為基本的柱狀圖配置
+        charts = []
+        if data.get("rows") and data.get("columns"):
+            columns = data["columns"]
+            rows = data["rows"]
+
+            # 假設第一欄是標籤，其他欄是數值
+            if len(columns) >= 2:
+                label_key = columns[0]["key"]
+                labels = [row.get(label_key, "") for row in rows]
+
+                for col in columns[1:]:
+                    col_key = col["key"]
+                    values = []
+                    for row in rows:
+                        val = row.get(col_key, 0)
+                        # 嘗試轉換為數值
+                        if isinstance(val, str):
+                            try:
+                                val = float(val.replace(",", "").replace("%", ""))
+                            except ValueError:
+                                val = 0
+                        values.append(val)
+
+                    charts.append({
+                        "id": f"chart_{col_key}",
+                        "title": col["label"],
+                        "type": "bar",
+                        "config": {
+                            "type": "bar",
+                            "data": {
+                                "labels": labels,
+                                "datasets": [{
+                                    "label": col["label"],
+                                    "data": values,
+                                    "backgroundColor": "rgba(54, 162, 235, 0.8)",
+                                    "borderColor": "rgba(54, 162, 235, 1)",
+                                    "borderWidth": 1
+                                }]
+                            },
+                            "options": {
+                                "responsive": True,
+                                "plugins": {
+                                    "legend": {"position": "top"},
+                                    "title": {"display": True, "text": col["label"]}
+                                },
+                                "scales": {"y": {"beginAtZero": True}}
+                            }
+                        }
+                    })
+
+        # 生成 AI 圖片
         try:
-            data = datatable_result.get("data", {})
-            title = data.get("title", "資訊圖表")
-
             image_prompt = f"Professional infographic about {title}, data visualization, charts and graphs, modern flat design, clean layout, business style"
-
             image_base64 = ai_service.generate_image(
                 image_prompt,
                 size="1024x1024",
                 style="vivid"
             )
+        except Exception:
+            image_base64 = None
 
-            return {
-                "data": data,
-                "image": image_base64,
-                "type": "infographic"
-            }
-        except Exception as e:
-            logger.error(f"資訊圖表配圖生成失敗: {e}")
-            return {
-                "data": datatable_result.get("data"),
-                "image": None,
-                "type": "infographic",
-                "image_error": str(e)
-            }
+        return {
+            "data": {
+                "title": title,
+                "description": data.get("description", ""),
+                "charts": charts,
+                "datatable": data,
+                "summary": {
+                    "key_findings": ["資料已轉換為視覺化圖表"],
+                    "recommendations": []
+                }
+            },
+            "charts": charts,
+            "image": image_base64,
+            "type": "infographic",
+            "fallback": True
+        }
 
 
 # 全局實例

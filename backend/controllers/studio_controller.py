@@ -91,7 +91,16 @@ def generate_mindmap(notebook_id):
 
 @studio_bp.route('/<notebook_id>/studio/flashcards', methods=['POST'])
 def generate_flashcards(notebook_id):
-    """生成學習卡"""
+    """
+    生成學習卡
+
+    Request body:
+    {
+        "source_ids": ["id1", "id2"],  // 可選，指定來源
+        "count": 10,                    // 可選，學習卡數量
+        "difficulty": "mixed"           // 可選，難度設定: easy/medium/hard/mixed
+    }
+    """
     notebook = Notebook.query.get(notebook_id)
     if not notebook:
         return jsonify({'success': False, 'error': '筆記本不存在'}), 404
@@ -99,17 +108,27 @@ def generate_flashcards(notebook_id):
     data = request.get_json() or {}
     source_ids = data.get('source_ids')
     count = data.get('count', 10)
+    difficulty = data.get('difficulty', 'mixed')
 
     studio_service = get_studio_service()
-    result = studio_service.generate_flashcards(count=count, source_ids=source_ids, notebook_id=notebook_id)
+    result = studio_service.generate_flashcards(
+        count=count,
+        source_ids=source_ids,
+        notebook_id=notebook_id,
+        difficulty=difficulty
+    )
 
     if 'error' in result:
         return jsonify({'success': False, 'error': result['error']}), 400
 
+    # 標題包含難度資訊
+    difficulty_labels = {'easy': '簡單', 'medium': '中等', 'hard': '困難', 'mixed': '混合'}
+    title = f"學習卡 ({difficulty_labels.get(difficulty, '混合')}難度)"
+
     output = StudioOutput(
         notebook_id=notebook_id,
         type='flashcards',
-        title='學習卡',
+        title=title,
         data=result,
         source_ids=source_ids
     )
@@ -124,7 +143,16 @@ def generate_flashcards(notebook_id):
 
 @studio_bp.route('/<notebook_id>/studio/quiz', methods=['POST'])
 def generate_quiz(notebook_id):
-    """生成測驗"""
+    """
+    生成測驗
+
+    Request body:
+    {
+        "source_ids": ["id1", "id2"],  // 可選，指定來源
+        "count": 10,                    // 可選，測驗題數量
+        "difficulty": "mixed"           // 可選，難度設定: easy/medium/hard/mixed
+    }
+    """
     notebook = Notebook.query.get(notebook_id)
     if not notebook:
         return jsonify({'success': False, 'error': '筆記本不存在'}), 404
@@ -132,17 +160,27 @@ def generate_quiz(notebook_id):
     data = request.get_json() or {}
     source_ids = data.get('source_ids')
     count = data.get('count', 10)
+    difficulty = data.get('difficulty', 'mixed')
 
     studio_service = get_studio_service()
-    result = studio_service.generate_quiz(count=count, source_ids=source_ids, notebook_id=notebook_id)
+    result = studio_service.generate_quiz(
+        count=count,
+        source_ids=source_ids,
+        notebook_id=notebook_id,
+        difficulty=difficulty
+    )
 
     if 'error' in result:
         return jsonify({'success': False, 'error': result['error']}), 400
 
+    # 標題包含難度資訊
+    difficulty_labels = {'easy': '簡單', 'medium': '中等', 'hard': '困難', 'mixed': '混合'}
+    title = f"測驗 ({difficulty_labels.get(difficulty, '混合')}難度)"
+
     output = StudioOutput(
         notebook_id=notebook_id,
         type='quiz',
-        title='測驗',
+        title=title,
         data=result,
         source_ids=source_ids
     )
@@ -260,24 +298,62 @@ def generate_presentation(notebook_id):
 
 @studio_bp.route('/<notebook_id>/studio/infographic', methods=['POST'])
 def generate_infographic(notebook_id):
-    """生成資訊圖表（含配圖）"""
+    """
+    生成資訊圖表（Chart.js 數據視覺化）
+
+    Request body:
+    {
+        "source_ids": ["id1", "id2"],  // 可選，指定來源
+        "with_ai_image": false          // 可選，是否額外生成 AI 裝飾圖片
+    }
+
+    Response:
+    {
+        "data": {
+            "title": "圖表標題",
+            "description": "圖表說明",
+            "charts": [
+                {
+                    "id": "chart1",
+                    "title": "子圖表標題",
+                    "type": "bar/line/pie/radar/...",
+                    "config": { /* Chart.js 配置 */ }
+                }
+            ],
+            "summary": {
+                "key_findings": ["發現1", "發現2"],
+                "recommendations": ["建議1"]
+            }
+        }
+    }
+    """
     notebook = Notebook.query.get(notebook_id)
     if not notebook:
         return jsonify({'success': False, 'error': '筆記本不存在'}), 404
 
     data = request.get_json() or {}
     source_ids = data.get('source_ids')
+    with_ai_image = data.get('with_ai_image', False)
 
     studio_service = get_studio_service()
-    result = studio_service.generate_infographic(source_ids=source_ids, notebook_id=notebook_id)
+    result = studio_service.generate_infographic(
+        source_ids=source_ids,
+        notebook_id=notebook_id,
+        with_ai_image=with_ai_image
+    )
 
     if 'error' in result:
         return jsonify({'success': False, 'error': result['error']}), 400
 
+    # 取得圖表數量和類型
+    charts = result.get('charts', [])
+    chart_types = list(set([c.get('type', 'bar') for c in charts]))
+    title = result.get('data', {}).get('title', '資訊圖表')
+
     output = StudioOutput(
         notebook_id=notebook_id,
         type='infographic',
-        title='資訊圖表',
+        title=f"{title} ({len(charts)} 個圖表)",
         data=result,
         source_ids=source_ids
     )
@@ -307,15 +383,16 @@ def generate_output(notebook_id):
     studio_service = get_studio_service()
 
     # 根據類型調用對應方法
+    difficulty = data.get('difficulty', 'mixed')
     type_methods = {
         'summary': lambda: studio_service.generate_summary(source_ids=source_ids, notebook_id=notebook_id),
         'mindmap': lambda: studio_service.generate_mindmap(source_ids=source_ids, notebook_id=notebook_id),
-        'flashcards': lambda: studio_service.generate_flashcards(count=data.get('count', 10), source_ids=source_ids, notebook_id=notebook_id),
-        'quiz': lambda: studio_service.generate_quiz(count=data.get('count', 10), source_ids=source_ids, notebook_id=notebook_id),
+        'flashcards': lambda: studio_service.generate_flashcards(count=data.get('count', 10), source_ids=source_ids, notebook_id=notebook_id, difficulty=difficulty),
+        'quiz': lambda: studio_service.generate_quiz(count=data.get('count', 10), source_ids=source_ids, notebook_id=notebook_id, difficulty=difficulty),
         'report': lambda: studio_service.generate_report(source_ids=source_ids, notebook_id=notebook_id),
         'datatable': lambda: studio_service.generate_datatable(source_ids=source_ids, notebook_id=notebook_id),
         'presentation': lambda: studio_service.generate_presentation(source_ids=source_ids, notebook_id=notebook_id, slide_count=data.get('slide_count', 8), with_images=data.get('with_images', True)),
-        'infographic': lambda: studio_service.generate_infographic(source_ids=source_ids, notebook_id=notebook_id),
+        'infographic': lambda: studio_service.generate_infographic(source_ids=source_ids, notebook_id=notebook_id, with_ai_image=data.get('with_ai_image', False)),
     }
 
     if output_type not in type_methods:

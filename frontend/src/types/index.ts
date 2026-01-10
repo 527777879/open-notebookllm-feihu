@@ -107,27 +107,125 @@ export interface MindmapBranch {
   children: MindmapBranch[]
 }
 
-// 學習卡數據
+// 難度類型
+export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'mixed'
+
+// 學習卡數據（升級版）
 export interface FlashcardsData {
   cards: Flashcard[]
+  metadata?: FlashcardsMetadata
 }
 
 export interface Flashcard {
   front: string
   back: string
+  difficulty?: DifficultyLevel
+  category?: string
+  cognitive_level?: string
+  hint?: string
 }
 
-// 測驗數據
+export interface FlashcardsMetadata {
+  total_cards: number
+  difficulty_distribution?: {
+    easy: number
+    medium: number
+    hard: number
+  }
+  categories?: string[]
+  recommended_study_order?: number[]
+}
+
+// 測驗數據（升級版）
 export interface QuizData {
+  quiz_title?: string
+  description?: string
   questions: QuizQuestion[]
+  metadata?: QuizMetadata
 }
 
 export interface QuizQuestion {
-  type: 'multiple_choice' | 'true_false'
+  id?: number
+  type: 'multiple_choice' | 'true_false' | 'fill_blank' | 'matching' | 'short_answer'
+  difficulty?: DifficultyLevel
+  cognitive_level?: string
+  category?: string
   question: string
   options?: string[]
-  correct: string | boolean
+  correct: string | boolean | Record<string, string>
+  alternatives?: string[]  // 填空題的其他可接受答案
+  left_items?: string[]    // 配對題左側
+  right_items?: string[]   // 配對題右側
+  correct_pairs?: Record<string, string>  // 配對題答案
+  sample_answer?: string   // 簡答題參考答案
+  key_points?: string[]    // 簡答題要點
   explanation: string
+  hint?: string
+  points?: number
+}
+
+export interface QuizMetadata {
+  total_questions: number
+  total_points: number
+  time_limit_minutes?: number
+  passing_score?: number
+  difficulty_distribution?: {
+    easy: number
+    medium: number
+    hard: number
+  }
+  type_distribution?: {
+    multiple_choice: number
+    true_false: number
+    fill_blank?: number
+    matching?: number
+    short_answer?: number
+  }
+  categories?: string[]
+}
+
+// 資訊圖表數據（Chart.js 版）
+export interface InfographicData {
+  title: string
+  description?: string
+  data_source?: string
+  charts: ChartConfig[]
+  summary?: {
+    key_findings: string[]
+    recommendations: string[]
+  }
+  metadata?: {
+    total_charts: number
+    chart_types: string[]
+    data_points?: number
+  }
+  image?: string  // 可選的 AI 生成圖片
+}
+
+export interface ChartConfig {
+  id: string
+  title: string
+  type: 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'scatter' | 'polarArea'
+  description?: string
+  insights?: string[]
+  config: {
+    type: string
+    data: {
+      labels: string[]
+      datasets: ChartDataset[]
+    }
+    options?: Record<string, unknown>
+  }
+}
+
+export interface ChartDataset {
+  label?: string
+  data: number[]
+  backgroundColor?: string | string[]
+  borderColor?: string | string[]
+  borderWidth?: number
+  fill?: boolean
+  tension?: number
 }
 
 // Podcast 數據

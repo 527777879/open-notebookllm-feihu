@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Check, AlertCircle, RefreshCw, Zap, Brain, Cpu, Cloud } from 'lucide-react'
+import { ArrowLeft, Check, AlertCircle, RefreshCw } from 'lucide-react'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import {
@@ -129,18 +129,6 @@ export default function SettingsPage() {
       setTestResult({ success: false, message: errorMessage })
     } finally {
       setIsSaving(false)
-    }
-  }
-
-  const getProviderIcon = (providerId: AIProvider) => {
-    switch (providerId) {
-      case 'gemini': return <Cloud className="w-5 h-5" />
-      case 'openai': return <Zap className="w-5 h-5" />
-      case 'anthropic': return <Brain className="w-5 h-5" />
-      case 'ollama': return <Cpu className="w-5 h-5" />
-      case 'groq': return <Zap className="w-5 h-5" />
-      case 'deepseek': return <Brain className="w-5 h-5" />
-      default: return <Cloud className="w-5 h-5" />
     }
   }
 

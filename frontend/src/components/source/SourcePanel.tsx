@@ -9,7 +9,6 @@ import {
   Trash2,
   Upload,
   Link,
-  X,
   CheckSquare,
   Square,
   Music,
@@ -64,7 +63,6 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
   const [sttLanguage, setSttLanguage] = useState('zh')
 
   const {
-    sources,
     selectedIds,
     filterType,
     searchQuery,

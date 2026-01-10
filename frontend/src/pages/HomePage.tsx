@@ -8,7 +8,6 @@ import {
   FolderPlus,
   ChevronRight,
   ChevronDown,
-  MoreHorizontal,
   Edit2,
   FolderOpen,
 } from 'lucide-react'

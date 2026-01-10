@@ -10,21 +10,32 @@ import {
   Presentation,
   Table,
   Loader2,
-  ChevronRight,
   Play,
   Pause,
   Download,
   Radio,
-  Users,
-  Settings2,
   Volume2,
+  Gauge,
+  CheckCircle2,
+  Lightbulb,
 } from 'lucide-react'
 import { useSourceStore } from '@/store'
 import * as studioApi from '@/api/studio'
-import type { StudioOutputType, PodcastScript, PodcastSegment, PodcastSpeaker, PodcastVoice, PodcastStyle } from '@/types'
+import type {
+  StudioOutputType,
+  PodcastScript,
+  PodcastSegment,
+  PodcastSpeaker,
+  PodcastVoice,
+  DifficultyLevel,
+  InfographicData,
+  Flashcard,
+  QuizQuestion,
+} from '@/types'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import MindmapRenderer from './MindmapRenderer'
+import ChartRenderer from './ChartRenderer'
 
 interface StudioPanelProps {
   notebookId: string
@@ -50,6 +61,14 @@ const podcastStyles = [
   { id: 'interview', name: '專訪形式', description: '訪談問答模式' },
 ]
 
+// 難度選項
+const difficultyOptions: { id: DifficultyLevel; name: string; description: string; color: string }[] = [
+  { id: 'easy', name: '簡單', description: '基礎定義和事實記憶', color: 'bg-green-100 text-green-700 border-green-300' },
+  { id: 'medium', name: '中等', description: '概念應用和比較分析', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { id: 'hard', name: '困難', description: '綜合評估和問題解決', color: 'bg-red-100 text-red-700 border-red-300' },
+  { id: 'mixed', name: '混合', description: '包含各難度題目', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+]
+
 const defaultSpeakers: PodcastSpeaker[] = [
   { name: '主持人', role: 'host', personality: '專業、親切' },
   { name: '來賓', role: 'guest', personality: '博學、風趣' },
@@ -70,6 +89,12 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
   const [withAudio, setWithAudio] = useState(false)
   const [availableVoices, setAvailableVoices] = useState<PodcastVoice[]>([])
   const [speakerVoices, setSpeakerVoices] = useState<Record<string, string>>({})
+
+  // 學習卡/測驗難度選擇相關狀態
+  const [isDifficultyModalOpen, setIsDifficultyModalOpen] = useState(false)
+  const [pendingType, setPendingType] = useState<'flashcards' | 'quiz' | null>(null)
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('mixed')
+  const [selectedCount, setSelectedCount] = useState(10)
 
   // 音訊播放狀態
   const [audioBase64, setAudioBase64] = useState<string | null>(null)
@@ -116,6 +141,17 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
       return
     }
 
+    // 學習卡和測驗需要選擇難度
+    if (type === 'flashcards' || type === 'quiz') {
+      setPendingType(type)
+      setIsDifficultyModalOpen(true)
+      return
+    }
+
+    await executeGenerate(type)
+  }
+
+  const executeGenerate = async (type: StudioOutputType, options?: studioApi.StudioOutputOptions) => {
     setGeneratingType(type)
     setResult(null)
     setError(null)
@@ -124,7 +160,8 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
       const response = await studioApi.generateStudioOutput(
         notebookId,
         type,
-        selectedIds.length > 0 ? selectedIds : undefined
+        selectedIds.length > 0 ? selectedIds : undefined,
+        options
       )
 
       if (response.data.success && response.data.data) {
@@ -134,7 +171,6 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
         })
         setIsResultModalOpen(true)
       } else {
-        // API 返回 success: false
         setError(response.data.error || '生成失敗，請稍後再試')
       }
     } catch (err: unknown) {
@@ -144,6 +180,18 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
     } finally {
       setGeneratingType(null)
     }
+  }
+
+  const handleGenerateWithDifficulty = async () => {
+    if (!pendingType) return
+    setIsDifficultyModalOpen(false)
+
+    await executeGenerate(pendingType, {
+      count: selectedCount,
+      difficulty: selectedDifficulty,
+    })
+
+    setPendingType(null)
   }
 
   const handleGeneratePodcast = async () => {
@@ -467,6 +515,97 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
         </div>
       </Modal>
 
+      {/* 難度選擇 Modal */}
+      <Modal
+        isOpen={isDifficultyModalOpen}
+        onClose={() => {
+          setIsDifficultyModalOpen(false)
+          setPendingType(null)
+        }}
+        title={`生成${pendingType === 'flashcards' ? '學習卡' : '測驗'}`}
+      >
+        <div className="space-y-6">
+          {/* 數量選擇 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              生成數量
+            </label>
+            <div className="flex gap-2">
+              {[5, 10, 15, 20].map((count) => (
+                <button
+                  key={count}
+                  onClick={() => setSelectedCount(count)}
+                  className={`flex-1 py-2 rounded-lg border transition-colors ${
+                    selectedCount === count
+                      ? 'border-primary-600 bg-primary-50 text-primary-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {count} {pendingType === 'flashcards' ? '張' : '題'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 難度選擇 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              難度設定
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {difficultyOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setSelectedDifficulty(option.id)}
+                  className={`p-3 rounded-lg border text-left transition-colors ${
+                    selectedDifficulty === option.id
+                      ? `${option.color} border-2`
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <p className="text-sm font-medium">{option.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bloom 認知層次說明 */}
+          <div className="bg-blue-50 rounded-lg p-3">
+            <p className="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
+              <Lightbulb className="w-3 h-3" />
+              Bloom 認知層次
+            </p>
+            <p className="text-xs text-blue-600">
+              {selectedDifficulty === 'easy' && '記憶、理解：回憶定義、解釋概念'}
+              {selectedDifficulty === 'medium' && '應用、分析：實際應用、比較分析'}
+              {selectedDifficulty === 'hard' && '評估、創造：批判思考、問題解決'}
+              {selectedDifficulty === 'mixed' && '包含各層次問題，循序漸進'}
+            </p>
+          </div>
+
+          {/* 生成按鈕 */}
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setIsDifficultyModalOpen(false)
+                setPendingType(null)
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleGenerateWithDifficulty}
+              loading={generatingType === pendingType}
+            >
+              <Gauge className="w-4 h-4 mr-2" />
+              開始生成
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* 結果顯示 Modal */}
       <Modal
         isOpen={isResultModalOpen}
@@ -571,14 +710,71 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
   }
 
   if (type === 'flashcards') {
-    const cards = (data as { data?: { cards?: Array<{ front: string; back: string }> } }).data?.cards ||
-                  (data as { cards?: Array<{ front: string; back: string }> }).cards || []
+    const flashcardsData = (data as { data?: { cards?: Flashcard[]; metadata?: unknown } }).data ||
+                           (data as { cards?: Flashcard[]; metadata?: unknown })
+    const cards = flashcardsData?.cards || []
+    const metadata = (flashcardsData as { metadata?: { difficulty_distribution?: Record<string, number>; categories?: string[] } })?.metadata
+
+    // 難度顏色映射
+    const difficultyColors: Record<string, string> = {
+      easy: 'bg-green-100 text-green-700',
+      medium: 'bg-yellow-100 text-yellow-700',
+      hard: 'bg-red-100 text-red-700',
+    }
+
     return (
-      <div className="space-y-3">
-        {cards.map((card: { front: string; back: string }, index: number) => (
-          <div key={index} className="bg-gray-50 rounded-lg p-4">
-            <p className="font-medium text-gray-900 mb-2">{card.front}</p>
-            <p className="text-sm text-gray-600">{card.back}</p>
+      <div className="space-y-4">
+        {/* 元數據摘要 */}
+        {metadata && (
+          <div className="flex items-center gap-4 text-xs text-gray-500 pb-3 border-b">
+            <span>共 {cards.length} 張卡片</span>
+            {metadata.difficulty_distribution && (
+              <span>
+                難度分布：簡單 {metadata.difficulty_distribution.easy || 0} /
+                中等 {metadata.difficulty_distribution.medium || 0} /
+                困難 {metadata.difficulty_distribution.hard || 0}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* 學習卡列表 */}
+        {cards.map((card: Flashcard, index: number) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-2">
+            {/* 標籤列 */}
+            <div className="flex items-center gap-2 mb-2">
+              {card.difficulty && (
+                <span className={`text-xs px-2 py-0.5 rounded ${difficultyColors[card.difficulty] || 'bg-gray-100 text-gray-600'}`}>
+                  {card.difficulty === 'easy' ? '簡單' : card.difficulty === 'medium' ? '中等' : card.difficulty === 'hard' ? '困難' : card.difficulty}
+                </span>
+              )}
+              {card.category && (
+                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                  {card.category}
+                </span>
+              )}
+              {card.cognitive_level && (
+                <span className="text-xs text-gray-400">
+                  {card.cognitive_level}
+                </span>
+              )}
+            </div>
+
+            {/* 問題 */}
+            <p className="font-medium text-gray-900">{card.front}</p>
+
+            {/* 提示 */}
+            {card.hint && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <Lightbulb className="w-3 h-3" />
+                提示：{card.hint}
+              </p>
+            )}
+
+            {/* 答案 */}
+            <div className="pt-2 border-t border-gray-200">
+              <p className="text-sm text-gray-600">{card.back}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -586,22 +782,152 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
   }
 
   if (type === 'quiz') {
-    const questions = (data as { data?: { questions?: Array<{ question: string; options?: string[]; correct: string | boolean }> } }).data?.questions ||
-                      (data as { questions?: Array<{ question: string; options?: string[]; correct: string | boolean }> }).questions || []
+    const quizData = (data as { data?: { questions?: QuizQuestion[]; metadata?: unknown; quiz_title?: string } }).data ||
+                     (data as { questions?: QuizQuestion[]; metadata?: unknown; quiz_title?: string })
+    const questions = quizData?.questions || []
+    const metadata = (quizData as { metadata?: { total_points?: number; time_limit_minutes?: number; passing_score?: number } })?.metadata
+    const quizTitle = (quizData as { quiz_title?: string })?.quiz_title
+
+    // 難度顏色映射
+    const difficultyColors: Record<string, string> = {
+      easy: 'bg-green-100 text-green-700',
+      medium: 'bg-yellow-100 text-yellow-700',
+      hard: 'bg-red-100 text-red-700',
+    }
+
+    // 題型標籤映射
+    const typeLabels: Record<string, string> = {
+      multiple_choice: '選擇題',
+      true_false: '判斷題',
+      fill_blank: '填空題',
+      matching: '配對題',
+      short_answer: '簡答題',
+    }
+
     return (
       <div className="space-y-4">
-        {questions.map((q: { question: string; options?: string[]; correct: string | boolean }, index: number) => (
-          <div key={index} className="bg-gray-50 rounded-lg p-4">
-            <p className="font-medium text-gray-900 mb-2">
+        {/* 標題和元數據 */}
+        {(quizTitle || metadata) && (
+          <div className="bg-cyan-50 rounded-lg p-4">
+            {quizTitle && <h4 className="font-medium text-gray-900">{quizTitle}</h4>}
+            {metadata && (
+              <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mt-2">
+                <span>共 {questions.length} 題</span>
+                {metadata.total_points && <span>總分：{metadata.total_points} 分</span>}
+                {metadata.time_limit_minutes && <span>建議時間：{metadata.time_limit_minutes} 分鐘</span>}
+                {metadata.passing_score && <span>及格分數：{metadata.passing_score} 分</span>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 題目列表 */}
+        {questions.map((q: QuizQuestion, index: number) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
+            {/* 題目標籤 */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-0.5 rounded bg-cyan-100 text-cyan-700">
+                {typeLabels[q.type] || q.type}
+              </span>
+              {q.difficulty && (
+                <span className={`text-xs px-2 py-0.5 rounded ${difficultyColors[q.difficulty] || 'bg-gray-100'}`}>
+                  {q.difficulty === 'easy' ? '簡單' : q.difficulty === 'medium' ? '中等' : '困難'}
+                </span>
+              )}
+              {q.points && (
+                <span className="text-xs text-gray-400">{q.points} 分</span>
+              )}
+            </div>
+
+            {/* 題目內容 */}
+            <p className="font-medium text-gray-900">
               {index + 1}. {q.question}
             </p>
-            {q.options && (
+
+            {/* 選擇題選項 */}
+            {q.type === 'multiple_choice' && q.options && (
               <div className="space-y-1 ml-4">
-                {q.options.map((opt: string, i: number) => (
-                  <p key={i} className="text-sm text-gray-600">
-                    {String.fromCharCode(65 + i)}. {opt}
+                {q.options.map((opt: string, i: number) => {
+                  const isCorrect = q.correct === String.fromCharCode(65 + i)
+                  return (
+                    <p key={i} className={`text-sm flex items-center gap-2 ${isCorrect ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                      {isCorrect && <CheckCircle2 className="w-4 h-4" />}
+                      {String.fromCharCode(65 + i)}. {opt}
+                    </p>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* 判斷題答案 */}
+            {q.type === 'true_false' && (
+              <p className="text-sm text-green-700 font-medium flex items-center gap-2 ml-4">
+                <CheckCircle2 className="w-4 h-4" />
+                答案：{q.correct === true ? '正確' : '錯誤'}
+              </p>
+            )}
+
+            {/* 填空題答案 */}
+            {q.type === 'fill_blank' && (
+              <p className="text-sm text-green-700 font-medium ml-4">
+                答案：{String(q.correct)}
+                {q.alternatives && q.alternatives.length > 0 && (
+                  <span className="text-gray-500 font-normal">（也接受：{q.alternatives.join('、')}）</span>
+                )}
+              </p>
+            )}
+
+            {/* 配對題 */}
+            {q.type === 'matching' && q.left_items && q.right_items && (
+              <div className="grid grid-cols-2 gap-4 ml-4">
+                <div className="space-y-1">
+                  {q.left_items.map((item, i) => (
+                    <p key={i} className="text-sm text-gray-600">{i + 1}. {item}</p>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  {q.right_items.map((item, i) => (
+                    <p key={i} className="text-sm text-gray-600">{String.fromCharCode(65 + i)}. {item}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 簡答題參考答案 */}
+            {q.type === 'short_answer' && (
+              <div className="ml-4 space-y-2">
+                {q.sample_answer && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">參考答案：</span>{q.sample_answer}
                   </p>
-                ))}
+                )}
+                {q.key_points && q.key_points.length > 0 && (
+                  <div className="text-sm text-gray-500">
+                    <span className="font-medium">評分要點：</span>
+                    <ul className="list-disc list-inside mt-1">
+                      {q.key_points.map((point, i) => (
+                        <li key={i}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 提示 */}
+            {q.hint && (
+              <p className="text-xs text-amber-600 flex items-center gap-1 ml-4">
+                <Lightbulb className="w-3 h-3" />
+                提示：{q.hint}
+              </p>
+            )}
+
+            {/* 解釋 */}
+            {q.explanation && (
+              <div className="pt-2 border-t border-gray-200 mt-2">
+                <p className="text-xs text-gray-500">
+                  <span className="font-medium">解釋：</span>{q.explanation}
+                </p>
               </div>
             )}
           </div>
@@ -723,9 +1049,19 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
     )
   }
 
-  // 資訊圖表顯示
+  // 資訊圖表顯示（Chart.js 版）
   if (type === 'infographic') {
-    const infoData = data as {
+    // 嘗試解析新格式（Chart.js）
+    const rawInfographic = data as { data?: InfographicData; charts?: unknown[]; image?: string }
+    const infographicData = rawInfographic?.data || rawInfographic
+
+    // 檢查是否為新格式（有 charts 陣列）
+    if (infographicData && 'charts' in infographicData && Array.isArray((infographicData as InfographicData).charts)) {
+      return <ChartRenderer data={infographicData as InfographicData} />
+    }
+
+    // 舊格式兼容：顯示 AI 圖片或 sections
+    const oldFormatData = data as {
       title?: string
       sections?: Array<{
         title: string
@@ -738,17 +1074,17 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
 
     return (
       <div className="space-y-4">
-        {infoData.title && (
-          <h4 className="font-medium text-gray-900 text-center">{infoData.title}</h4>
+        {oldFormatData.title && (
+          <h4 className="font-medium text-gray-900 text-center">{oldFormatData.title}</h4>
         )}
-        {infoData.image && (
+        {oldFormatData.image && (
           <img
-            src={infoData.image.startsWith('data:') ? infoData.image : `data:image/png;base64,${infoData.image}`}
-            alt={infoData.title || '資訊圖表'}
+            src={oldFormatData.image.startsWith('data:') ? oldFormatData.image : `data:image/png;base64,${oldFormatData.image}`}
+            alt={oldFormatData.title || '資訊圖表'}
             className="w-full rounded-lg"
           />
         )}
-        {infoData.sections?.map((section, index) => (
+        {oldFormatData.sections?.map((section, index) => (
           <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4">
             <h5 className="font-medium text-gray-900 mb-2">
               {section.icon && <span className="mr-2">{section.icon}</span>}
