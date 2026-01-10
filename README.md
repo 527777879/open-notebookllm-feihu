@@ -2,7 +2,6 @@
 
 開源版 NotebookLM 複刻專案，支援多種 AI 提供商，具備 RAG 檢索、Podcast 生成、語音轉文字等功能。
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![Node.js](https://img.shields.io/badge/node.js-18+-green.svg)
 
@@ -290,7 +289,26 @@ cd frontend && npm run build
 
 ---
 
-## 授權
+## 作者
 
-本專案採用 MIT 授權，僅供學習和個人使用。
+**阿亮老師**
 
+- Facebook: https://www.facebook.com/?locale=zh_TW
+- YouTube: https://www.youtube.com/@Liang-yt02
+- 3A科技研究社: https://www.facebook.com/groups/2754139931432955
+
+---
+
+## 授權聲明
+
+© 2026 阿亮老師 版權所有
+
+本專案僅供「阿亮老師課程學員」學習使用。
+
+**禁止事項：**
+- 禁止修改本專案內容
+- 禁止轉傳或散布
+- 禁止商業使用
+- 禁止未經授權之任何形式使用
+
+如有任何授權需求，請聯繫作者。
