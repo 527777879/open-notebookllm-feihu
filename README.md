@@ -294,8 +294,3 @@ cd frontend && npm run build
 
 本專案採用 MIT 授權，僅供學習和個人使用。
 
----
-
-## 致謝
-
-靈感來自 Google NotebookLM，本專案為開源複刻版本。
