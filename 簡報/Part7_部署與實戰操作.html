@@ -228,73 +228,139 @@ OPENAI_IMAGE_API_KEY=sk-xxx</pre>
 
         <div class="slide">
             <div class="content-card">
-                <h2>🤖 AI 輔助開發：專案規劃提示詞</h2>
-                <p>想要自己從零開始建立類似專案？以下是給 AI 的提示詞範例：</p>
-                <pre style="font-size: 14px; line-height: 1.6;">我想建立一個類似 Google NotebookLM 的開源專案，請幫我規劃：
+                <h2>🤖 AI 輔助開發：完整專案提示詞 (1/4)</h2>
+                <p>想要自己從零開始建立類似專案？以下是完整的提示詞範例：</p>
+                <pre style="font-size: 13px; line-height: 1.5; max-height: 60vh; overflow-y: auto;">我想建立一個類似 Google NotebookLM 的開源知識庫應用程式，請幫我完整規劃並實現。
 
-【專案需求】
-1. 支援多種 AI 提供商（Gemini、OpenAI、Anthropic、Ollama）
-2. RAG 檢索增強生成：上傳文件後可以智能問答
-3. 支援多種來源：PDF、Word、Excel、網頁、YouTube、音檔
-4. 工作室功能：生成摘要、心智圖、學習卡、測驗、簡報、Podcast
+【專案名稱】Open NotebookLLM
 
-【技術棧要求】
-- 後端：Python Flask + SQLite + SQLAlchemy
-- 前端：React + TypeScript + TailwindCSS
-- 向量搜尋：支援全文搜尋 + 向量相似度搜尋
+【核心功能需求】
+1. 筆記本管理系統
+   - 建立/編輯/刪除筆記本
+   - 資料夾分類管理
+   - 筆記本搜尋功能
 
-請提供：
-1. 專案目錄結構
-2. 資料庫 Schema 設計
-3. API 端點規劃
-4. AI Provider 抽象層設計</pre>
+2. 多格式來源支援
+   - PDF 文件解析（使用 PyPDF2 或 pdfplumber）
+   - Word 文件解析（python-docx）
+   - Excel/CSV 解析（pandas + openpyxl）
+   - 網頁內容擷取（BeautifulSoup + requests）
+   - YouTube 影片字幕擷取（youtube-transcript-api）
+   - 音檔語音轉文字（OpenAI Whisper API 或 Groq Whisper）
+
+3. RAG 檢索增強生成
+   - 文件內容分割成 Chunks（500-1000 字元，overlap 100）
+   - 向量嵌入生成（支援多種 Embedding 模型）
+   - SQLite FTS5 全文搜尋索引
+   - 向量相似度搜尋（餘弦相似度）
+   - RRF (Reciprocal Rank Fusion) 混合搜尋融合
+   - Query Expansion 查詢擴展
+   - LLM Reranking 智能重排序</pre>
             </div>
         </div>
 
         <div class="slide">
             <div class="content-card">
-                <h2>🤖 AI 輔助開發：功能實現提示詞</h2>
-                <p>分階段請 AI 協助實現各個功能模組：</p>
-                <div class="concept-grid">
-                    <div class="concept-card">
-                        <h3>RAG 服務</h3>
-                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 RAG 服務：
-- 文件解析（PDF/Word/Excel）
-- 文字分割成 Chunks
-- 向量嵌入生成
-- 混合搜尋（全文+向量）
-- RRF 融合排序</pre>
-                    </div>
-                    <div class="concept-card">
-                        <h3>AI Provider</h3>
-                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 AI Provider 抽象層：
-- BaseAIProvider 基類
-- generate() 文字生成
-- generate_stream() 串流
-- generate_embedding() 嵌入
-- 支援 Gemini/OpenAI/Ollama</pre>
-                    </div>
-                    <div class="concept-card">
-                        <h3>工作室服務</h3>
-                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現工作室輸出：
-- 摘要生成
-- 心智圖（Mermaid 格式）
-- 學習卡（Bloom 認知層次）
-- 測驗（多種題型）
-- Podcast 腳本生成</pre>
-                    </div>
-                    <div class="concept-card">
-                        <h3>前端元件</h3>
-                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 React 元件：
-- 筆記本列表/詳情頁
-- 來源上傳元件
-- 聊天對話介面（SSE 串流）
-- 工作室面板
-- Chart.js 圖表渲染</pre>
-                    </div>
-                </div>
-                <div class="box info">
-                    <strong>技巧：</strong>將大專案拆分成小模組，逐步請 AI 協助實現，並持續測試整合！
+                <h2>🤖 AI 輔助開發：完整專案提示詞 (2/4)</h2>
+                <pre style="font-size: 13px; line-height: 1.5; max-height: 65vh; overflow-y: auto;">4. 多 AI 提供商支援（策略模式抽象層）
+   - Gemini (Google)：gemini-2.0-flash、gemini-2.5-pro
+     * 文字生成、嵌入向量、圖片生成（Imagen）
+   - OpenAI：gpt-4o、gpt-4.1
+     * 文字生成、嵌入向量（text-embedding-3-small）、DALL-E 3 圖片
+   - Anthropic：claude-sonnet-4、claude-opus-4
+     * 文字生成（嵌入向量使用備援）
+   - Ollama：本地模型（llama3.2、mistral）
+     * 完全離線、免費無限使用
+   - Groq：超高速推理
+     * llama-3.3-70b-versatile
+   - DeepSeek：深度推理模型
+
+   每個 Provider 需實現統一介面：
+   - generate(prompt, system_prompt) -> str
+   - generate_stream(prompt, system_prompt) -> Generator
+   - generate_embedding(text) -> List[float]
+   - generate_image(prompt) -> str (base64)
+
+5. 智能對話功能
+   - 基於來源的 RAG 問答
+   - SSE (Server-Sent Events) 串流回應
+   - 對話歷史記錄
+   - 來源引用標註
+   - 支援多輪對話上下文</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🤖 AI 輔助開發：完整專案提示詞 (3/4)</h2>
+                <pre style="font-size: 13px; line-height: 1.5; max-height: 65vh; overflow-y: auto;">6. 工作室輸出功能
+   - 摘要生成：自動摘要來源內容
+   - 心智圖：Mermaid mindmap 格式，支援 SVG 匯出
+   - 流程圖/架構圖：Draw.io XML 格式，支援即時編輯
+     * 6 種圖表類型：architecture/sequence/class/er/network/auto
+   - 學習卡：
+     * Bloom 認知層次（記憶/理解/應用/分析/評估/創造）
+     * 難度分級（簡單/中等/困難）
+     * 翻卡互動介面
+   - 測驗系統：
+     * 5 種題型：選擇題/判斷題/填空題/配對題/簡答題
+     * 自動評分與解析
+   - 資訊圖表：Chart.js 渲染
+     * 7 種圖表：Bar/Line/Pie/Doughnut/Radar/Scatter/PolarArea
+     * AI 自動分析數據並選擇最適合的圖表類型
+   - 簡報生成：
+     * 自動生成大綱結構
+     * AI 配圖（Gemini Imagen / DALL-E 3）
+     * PPTX 檔案匯出（python-pptx）
+
+7. Podcast 生成
+   - AI 生成雙主持人對話腳本（Host A / Host B）
+   - 專業級 Prompt：自然對話、互動提問、例子類比
+   - TTS 語音合成：
+     * Edge TTS（免費推薦）：多語言、多音色
+     * OpenAI TTS：高品質
+     * Google Cloud TTS
+   - 音檔合併與匯出（MP3）</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🤖 AI 輔助開發：完整專案提示詞 (4/4)</h2>
+                <pre style="font-size: 13px; line-height: 1.5; max-height: 50vh; overflow-y: auto;">【技術棧】
+後端：
+- Python 3.10+ / Flask 3.0 / Flask-CORS
+- SQLite + SQLAlchemy ORM + FTS5 全文搜尋
+- 向量儲存：NumPy 陣列序列化存入 SQLite
+
+前端：
+- React 18 + TypeScript + Vite
+- TailwindCSS 樣式
+- Zustand 狀態管理
+- React Router 路由
+- Chart.js + react-chartjs-2 圖表
+- Mermaid.js 心智圖
+- react-drawio 流程圖編輯器
+
+【資料庫 Schema】
+- Notebook (id, title, created_at, folder_id)
+- Source (id, notebook_id, type, title, content, url, status)
+- SourceChunk (id, source_id, content, embedding, chunk_index)
+- Chat (id, notebook_id, role, content, sources, created_at)
+- StudioOutput (id, notebook_id, type, title, data, created_at)
+- Folder (id, name, emoji, order)
+
+【API 端點規劃】
+- GET/POST/DELETE /api/notebooks
+- POST /api/notebooks/:id/sources/upload
+- POST /api/notebooks/:id/sources/url
+- POST /api/notebooks/:id/chat/stream (SSE)
+- POST /api/notebooks/:id/studio/summary|mindmap|flashcards|quiz|...
+- GET/PUT /api/settings
+
+請按照以上規格，逐步實現完整的專案程式碼。</pre>
+                <div class="box success">
+                    <strong>使用方式：</strong>將此提示詞貼給 AI（如 Claude、ChatGPT），即可開始建立專案！
                 </div>
             </div>
         </div>
