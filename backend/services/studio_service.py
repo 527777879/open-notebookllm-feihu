@@ -1,6 +1,7 @@
 """
 工作室輸出生成服務
 """
+import json
 import logging
 from typing import Dict, Any, List, Optional
 
@@ -9,6 +10,14 @@ from .prompts import StudioPrompts
 from models import Source
 
 logger = logging.getLogger(__name__)
+
+# 嘗試導入 PPTX 建構器
+try:
+    from utils.pptx_builder import PPTXBuilder, is_pptx_available
+    PPTX_EXPORT_AVAILABLE = is_pptx_available()
+except ImportError:
+    PPTX_EXPORT_AVAILABLE = False
+    logger.warning("PPTX 導出功能不可用")
 
 
 class StudioService:
@@ -139,16 +148,18 @@ class StudioService:
         source_ids: Optional[List[str]] = None,
         notebook_id: Optional[str] = None,
         slide_count: int = 8,
-        with_images: bool = True
+        with_images: bool = True,
+        export_pptx: bool = False
     ) -> Dict[str, Any]:
         """
-        生成簡報
+        生成專業簡報
 
         Args:
             source_ids: 來源 ID 列表
             notebook_id: 筆記本 ID
             slide_count: 簡報頁數
             with_images: 是否生成配圖
+            export_pptx: 是否導出 PPTX 檔案
 
         Returns:
             簡報資料，包含文字內容和配圖
@@ -159,24 +170,216 @@ class StudioService:
 
         ai_service = get_ai_service()
 
-        # 生成簡報大綱
-        prompt = StudioPrompts.PRESENTATION.format(content=content, slide_count=slide_count)
-
         try:
-            result = ai_service.generate_json(prompt)
+            # 步驟 1: 生成專業大綱
+            logger.info("步驟 1: 生成簡報大綱")
+            outline = self._generate_presentation_outline(content, slide_count, ai_service)
 
-            # 如果需要生成配圖
-            if with_images and result.get("slides"):
-                result = self._generate_slide_images(result, ai_service)
+            # 步驟 2: 展開大綱為頁面列表
+            pages = self._flatten_outline(outline)
+            logger.info(f"大綱已展開為 {len(pages)} 頁")
 
-            return {"data": result, "type": "presentation"}
+            # 步驟 3: 為每頁生成詳細描述
+            logger.info("步驟 2: 生成每頁描述")
+            page_descriptions = self._generate_page_descriptions(content, outline, pages, ai_service)
+
+            # 步驟 4: 組建簡報資料結構
+            presentation_data = self._build_presentation_data(outline, pages, page_descriptions)
+
+            # 步驟 5: 如果需要生成配圖
+            if with_images:
+                logger.info("步驟 3: 生成簡報配圖")
+                presentation_data = self._generate_professional_slide_images(
+                    presentation_data, outline, ai_service
+                )
+
+            # 步驟 6: 如果需要導出 PPTX
+            if export_pptx and PPTX_EXPORT_AVAILABLE:
+                logger.info("步驟 4: 導出 PPTX 檔案")
+                pptx_base64 = self._export_to_pptx(presentation_data)
+                presentation_data["pptx_file"] = pptx_base64
+
+            return {"data": presentation_data, "type": "presentation"}
+
         except Exception as e:
             logger.error(f"簡報生成失敗: {e}")
             return {"error": str(e)}
 
+    def _generate_presentation_outline(self, content: str, slide_count: int, ai_service) -> List[Dict]:
+        """生成簡報大綱"""
+        prompt = StudioPrompts.PRESENTATION_OUTLINE.format(
+            content=content,
+            slide_count=slide_count
+        )
+        outline = ai_service.generate_json(prompt)
+        return outline
+
+    def _flatten_outline(self, outline: List[Dict]) -> List[Dict]:
+        """展開大綱結構為頁面列表"""
+        pages = []
+        for item in outline:
+            if "part" in item and "pages" in item:
+                # 這是一個章節，展開其頁面
+                for page in item["pages"]:
+                    page_with_part = page.copy()
+                    page_with_part["part"] = item["part"]
+                    pages.append(page_with_part)
+            else:
+                # 這是直接的頁面
+                pages.append(item)
+        return pages
+
+    def _generate_page_descriptions(self, content: str, outline: List[Dict],
+                                     pages: List[Dict], ai_service) -> List[str]:
+        """為每頁生成詳細描述"""
+        descriptions = []
+        outline_json = json.dumps(outline, ensure_ascii=False, indent=2)
+
+        for i, page in enumerate(pages):
+            page_index = i + 1
+            page_outline = json.dumps(page, ensure_ascii=False)
+
+            # 判斷是否為第一頁
+            is_first_page = (page_index == 1)
+            first_page_note = "**除非特殊要求，第一頁的內容需要保持極簡，只放標題副標題以及演講人等，不添加任何其他素材。**" if is_first_page else ""
+            subtitle_example = "副標題：簡報副標題" if is_first_page else ""
+
+            # 取得章節資訊
+            part_info = f"此頁面屬於：{page.get('part', '')}" if 'part' in page else ""
+
+            prompt = StudioPrompts.PRESENTATION_PAGE_DESCRIPTION.format(
+                content=content[:5000],  # 限制內容長度
+                outline=outline_json,
+                part_info=part_info,
+                page_index=page_index,
+                page_outline=page_outline,
+                first_page_note=first_page_note,
+                example_title=page.get('title', '範例標題'),
+                subtitle_example=subtitle_example
+            )
+
+            try:
+                description = ai_service.generate(prompt)
+                descriptions.append(description.strip())
+                logger.debug(f"第 {page_index} 頁描述生成完成")
+            except Exception as e:
+                logger.error(f"第 {page_index} 頁描述生成失敗: {e}")
+                descriptions.append(f"頁面標題：{page.get('title', '未命名')}\n\n頁面文字：\n- 內容生成中...")
+
+        return descriptions
+
+    def _build_presentation_data(self, outline: List[Dict], pages: List[Dict],
+                                  descriptions: List[str]) -> Dict[str, Any]:
+        """組建簡報資料結構"""
+        # 取得簡報標題
+        title = "簡報"
+        if pages and pages[0].get('title'):
+            title = pages[0]['title']
+
+        slides = []
+        for i, (page, description) in enumerate(zip(pages, descriptions)):
+            slide_data = {
+                "slide_number": i + 1,
+                "title": page.get('title', ''),
+                "type": "title" if i == 0 else "content",
+                "points": page.get('points', []),
+                "description": description,
+                "part": page.get('part', ''),
+                "image": None
+            }
+
+            # 解析描述內容
+            content_lines = []
+            for line in description.split('\n'):
+                line = line.strip()
+                if line.startswith('- ') or line.startswith('• '):
+                    content_lines.append(line)
+                elif line.startswith('頁面文字：'):
+                    continue
+                elif not line.startswith('頁面標題：') and line:
+                    content_lines.append(line)
+
+            slide_data["content"] = '\n'.join(content_lines[:10])  # 最多 10 行
+            slides.append(slide_data)
+
+        return {
+            "title": title,
+            "slides": slides,
+            "outline": outline,
+            "total_pages": len(slides)
+        }
+
+    def _generate_professional_slide_images(self, presentation_data: Dict,
+                                             outline: List[Dict], ai_service) -> Dict:
+        """使用專業提示詞為簡報每頁生成配圖"""
+        slides = presentation_data.get("slides", [])
+        outline_text = self._generate_outline_text(outline)
+
+        for slide in slides:
+            page_index = slide.get("slide_number", 1)
+            page_desc = slide.get("description", "")
+
+            # 取得當前章節
+            current_section = slide.get("part", "") or slide.get("title", "")
+
+            # 判斷是否為封面頁
+            is_title_page = (page_index == 1)
+            first_page_design_note = StudioPrompts.PRESENTATION_TITLE_PAGE_DESIGN if is_title_page else ""
+
+            # 生成專業圖片提示詞
+            image_prompt = StudioPrompts.PRESENTATION_IMAGE_GENERATION.format(
+                page_desc=page_desc,
+                outline_text=outline_text,
+                current_section=current_section,
+                first_page_design_note=first_page_design_note
+            )
+
+            try:
+                # 生成圖片
+                image_base64 = ai_service.generate_image(
+                    image_prompt,
+                    size="1792x1024",  # 16:9 比例
+                    style="vivid"
+                )
+
+                slide["image"] = image_base64
+                slide["image_prompt"] = image_prompt
+                logger.info(f"第 {page_index} 頁專業配圖生成成功")
+
+            except Exception as e:
+                logger.error(f"第 {page_index} 頁配圖生成失敗: {e}")
+                slide["image"] = None
+                slide["image_error"] = str(e)
+
+        return presentation_data
+
+    def _generate_outline_text(self, outline: List[Dict]) -> str:
+        """將大綱轉換為文字格式"""
+        text_parts = []
+        for i, item in enumerate(outline, 1):
+            if "part" in item and "pages" in item:
+                text_parts.append(f"{i}. {item['part']}")
+            else:
+                text_parts.append(f"{i}. {item.get('title', '未命名')}")
+        return "\n".join(text_parts)
+
+    def _export_to_pptx(self, presentation_data: Dict) -> Optional[str]:
+        """導出為 PPTX 檔案"""
+        if not PPTX_EXPORT_AVAILABLE:
+            logger.warning("PPTX 導出功能不可用")
+            return None
+
+        try:
+            builder = PPTXBuilder()
+            builder.build_from_presentation_data(presentation_data)
+            return builder.save_to_base64()
+        except Exception as e:
+            logger.error(f"PPTX 導出失敗: {e}")
+            return None
+
     def _generate_slide_images(self, presentation_data: Dict, ai_service) -> Dict:
         """
-        為簡報每頁生成配圖
+        為簡報每頁生成配圖（舊版方法，保留兼容性）
 
         Args:
             presentation_data: 簡報資料
