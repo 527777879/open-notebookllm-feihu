@@ -228,6 +228,79 @@ OPENAI_IMAGE_API_KEY=sk-xxx</pre>
 
         <div class="slide">
             <div class="content-card">
+                <h2>🤖 AI 輔助開發：專案規劃提示詞</h2>
+                <p>想要自己從零開始建立類似專案？以下是給 AI 的提示詞範例：</p>
+                <pre style="font-size: 14px; line-height: 1.6;">我想建立一個類似 Google NotebookLM 的開源專案，請幫我規劃：
+
+【專案需求】
+1. 支援多種 AI 提供商（Gemini、OpenAI、Anthropic、Ollama）
+2. RAG 檢索增強生成：上傳文件後可以智能問答
+3. 支援多種來源：PDF、Word、Excel、網頁、YouTube、音檔
+4. 工作室功能：生成摘要、心智圖、學習卡、測驗、簡報、Podcast
+
+【技術棧要求】
+- 後端：Python Flask + SQLite + SQLAlchemy
+- 前端：React + TypeScript + TailwindCSS
+- 向量搜尋：支援全文搜尋 + 向量相似度搜尋
+
+請提供：
+1. 專案目錄結構
+2. 資料庫 Schema 設計
+3. API 端點規劃
+4. AI Provider 抽象層設計</pre>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
+                <h2>🤖 AI 輔助開發：功能實現提示詞</h2>
+                <p>分階段請 AI 協助實現各個功能模組：</p>
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <h3>RAG 服務</h3>
+                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 RAG 服務：
+- 文件解析（PDF/Word/Excel）
+- 文字分割成 Chunks
+- 向量嵌入生成
+- 混合搜尋（全文+向量）
+- RRF 融合排序</pre>
+                    </div>
+                    <div class="concept-card">
+                        <h3>AI Provider</h3>
+                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 AI Provider 抽象層：
+- BaseAIProvider 基類
+- generate() 文字生成
+- generate_stream() 串流
+- generate_embedding() 嵌入
+- 支援 Gemini/OpenAI/Ollama</pre>
+                    </div>
+                    <div class="concept-card">
+                        <h3>工作室服務</h3>
+                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現工作室輸出：
+- 摘要生成
+- 心智圖（Mermaid 格式）
+- 學習卡（Bloom 認知層次）
+- 測驗（多種題型）
+- Podcast 腳本生成</pre>
+                    </div>
+                    <div class="concept-card">
+                        <h3>前端元件</h3>
+                        <pre style="font-size: 12px; background: #282c34; color: #abb2bf; padding: 10px; border-radius: 8px;">請實現 React 元件：
+- 筆記本列表/詳情頁
+- 來源上傳元件
+- 聊天對話介面（SSE 串流）
+- 工作室面板
+- Chart.js 圖表渲染</pre>
+                    </div>
+                </div>
+                <div class="box info">
+                    <strong>技巧：</strong>將大專案拆分成小模組，逐步請 AI 協助實現，並持續測試整合！
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-card">
                 <h2>🎯 課程總結</h2>
                 <div class="concept-grid">
                     <div class="concept-card">
