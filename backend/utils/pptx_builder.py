@@ -15,7 +15,6 @@ try:
     from pptx import Presentation
     from pptx.util import Inches, Pt
     from pptx.enum.text import PP_ALIGN
-    from pptx.dml.color import RgbColor
     PPTX_AVAILABLE = True
 except ImportError:
     PPTX_AVAILABLE = False

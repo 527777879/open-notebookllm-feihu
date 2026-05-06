@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Header from '@/components/layout/Header'
 import ThreeColumnLayout from '@/components/layout/ThreeColumnLayout'
 import SourcePanel from '@/components/source/SourcePanel'
@@ -10,6 +11,7 @@ import { useNotebookStore, useSourceStore, useChatStore } from '@/store'
 
 export default function NotebookPage() {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation('notebook')
 
   const { currentNotebook, isLoading, fetchNotebook } = useNotebookStore()
   const { fetchSources } = useSourceStore()
@@ -28,7 +30,7 @@ export default function NotebookPage() {
     return (
       <div className="h-screen flex flex-col">
         <Header showBack />
-        <Loading fullscreen message="載入筆記本中..." />
+        <Loading fullscreen message={t('loadingNotebook')} />
       </div>
     )
   }

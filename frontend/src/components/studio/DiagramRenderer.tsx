@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { DrawIoEmbed, DrawIoEmbedRef, EventExport } from 'react-drawio'
 import { Download, Copy, Check, Edit3, Eye, Maximize2 } from 'lucide-react'
 import type { DiagramData } from '../../types'
@@ -9,6 +10,7 @@ interface DiagramRendererProps {
 }
 
 export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps) {
+  const { t } = useTranslation(['studio', 'common'])
   const drawioRef = useRef<DrawIoEmbedRef>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -17,16 +19,16 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
 
   // 取得圖表類型標籤
   const getTypeLabel = () => {
-    if (data.type === 'flowchart') return '流程圖'
+    if (data.type === 'flowchart') return t('diagramResult.flowchart')
     const typeLabels: Record<string, string> = {
-      architecture: '架構圖',
-      sequence: '時序圖',
-      class: '類別圖',
-      er: 'ER 圖',
-      network: '網路圖',
-      auto: '系統圖'
+      architecture: t('diagramResult.architecture'),
+      sequence: t('diagramResult.sequence'),
+      class: t('diagramResult.class'),
+      er: t('diagramResult.er'),
+      network: t('diagramResult.network'),
+      auto: t('diagramResult.auto')
     }
-    return typeLabels[data.diagram_type || 'auto'] || '架構圖'
+    return typeLabels[data.diagram_type || 'auto'] || t('diagramResult.default')
   }
 
   // 處理匯出事件
@@ -100,8 +102,8 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
   if (!data.xml) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">無法顯示圖表</p>
-        <p className="text-sm mt-1">缺少 XML 資料</p>
+        <p className="font-medium">{t('diagramResult.cannotDisplay')}</p>
+        <p className="text-sm mt-1">{t('diagramResult.missingXml')}</p>
       </div>
     )
   }
@@ -126,23 +128,23 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
                 ? 'bg-blue-100 text-blue-700'
                 : 'hover:bg-gray-200'
             }`}
-            title={isEditing ? '檢視模式' : '編輯模式'}
+            title={isEditing ? t('diagramResult.viewMode') : t('diagramResult.editMode')}
           >
             {isEditing ? <Eye className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            <span>{isEditing ? '檢視' : '編輯'}</span>
+            <span>{isEditing ? t('diagramResult.view') : t('diagramResult.edit')}</span>
           </button>
           <button
             onClick={handleCopyXml}
             className="flex items-center gap-1 px-2 py-1 text-sm rounded hover:bg-gray-200 transition-colors"
-            title="複製 XML"
+            title={t('diagramResult.copyXml')}
           >
             {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? '已複製' : 'XML'}</span>
+            <span>{copied ? t('common:copied') : 'XML'}</span>
           </button>
           <button
             onClick={handleDownloadSvg}
             className="flex items-center gap-1 px-2 py-1 text-sm rounded hover:bg-gray-200 transition-colors"
-            title="下載 SVG"
+            title={t('diagramResult.downloadSvg')}
           >
             <Download className="w-4 h-4" />
             <span>SVG</span>
@@ -150,7 +152,7 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
           <button
             onClick={toggleFullscreen}
             className="p-1.5 rounded hover:bg-gray-200 transition-colors"
-            title={isFullscreen ? '退出全螢幕' : '全螢幕'}
+            title={isFullscreen ? t('diagramResult.exitFullscreen') : t('diagramResult.fullscreen')}
           >
             <Maximize2 className="w-4 h-4" />
           </button>
@@ -197,7 +199,7 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
       {/* 圖表元素資訊（如果有） */}
       {data.elements && data.elements.length > 0 && (
         <div className="bg-gray-50 rounded-lg p-3">
-          <h5 className="text-sm font-medium text-gray-700 mb-2">圖表元素</h5>
+          <h5 className="text-sm font-medium text-gray-700 mb-2">{t('diagramResult.elements')}</h5>
           <div className="flex flex-wrap gap-2">
             {data.elements.slice(0, 10).map((element, index) => (
               <span
@@ -213,7 +215,7 @@ export default function DiagramRenderer({ data, onUpdate }: DiagramRendererProps
             ))}
             {data.elements.length > 10 && (
               <span className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
-                +{data.elements.length - 10} 個元素
+                {t('diagramResult.moreElements', { count: data.elements.length - 10 })}
               </span>
             )}
           </div>

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Plus,
   Search,
@@ -13,6 +14,7 @@ import {
   Square,
   Music,
   Mic,
+  RefreshCw,
 } from 'lucide-react'
 import { useSourceStore } from '@/store'
 import Button from '@/components/common/Button'
@@ -34,24 +36,24 @@ const sourceTypeIcons: Record<SourceType, typeof FileText> = {
   audio: Music,
 }
 
-const sourceTypeLabels: Record<SourceType | 'all', string> = {
-  all: '全部',
-  pdf: 'PDFs',
-  text: 'Text',
-  web: 'Web',
-  youtube: 'YouTube',
-  gdocs: 'GDocs',
-  audio: '音檔',
-}
-
-// STT 提供商選項
-const sttProviders = [
-  { id: 'openai' as const, name: 'OpenAI Whisper', description: '高品質，支援多語言' },
-  { id: 'groq' as const, name: 'Groq Whisper', description: '超高速，免費額度' },
-  { id: 'local' as const, name: '本地 Whisper', description: '離線使用，需安裝' },
-]
-
 export default function SourcePanel({ notebookId }: SourcePanelProps) {
+  const { t } = useTranslation(['source', 'common'])
+
+  const sourceTypeLabels: Record<SourceType | 'all', string> = {
+    all: t('typeLabels.all'),
+    pdf: t('typeLabels.pdf'),
+    text: t('typeLabels.text'),
+    web: t('typeLabels.web'),
+    youtube: t('typeLabels.youtube'),
+    gdocs: t('typeLabels.gdocs'),
+    audio: t('typeLabels.audio'),
+  }
+
+  const sttProviders = [
+    { id: 'openai' as const, name: 'OpenAI Whisper', description: t('sttProviders.openai.description') },
+    { id: 'groq' as const, name: 'Groq Whisper', description: t('sttProviders.groq.description') },
+    { id: 'local' as const, name: '本地 Whisper', description: t('sttProviders.local.description') },
+  ]
   const fileInputRef = useRef<HTMLInputElement>(null)
   const audioInputRef = useRef<HTMLInputElement>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -78,7 +80,10 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
     addYoutube,
     addText,
     deleteSource,
+    reembedSource,
   } = useSourceStore()
+
+  const [reembeddingId, setReembeddingId] = useState<string | null>(null)
 
   const filteredSources = getFilteredSources()
   const allSelected = filteredSources.length > 0 && selectedIds.length === filteredSources.length
@@ -128,30 +133,39 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
   const handleAddText = async () => {
     if (!textContent.trim()) return
 
-    await addText(notebookId, textName || '未命名文字', textContent)
+    await addText(notebookId, textName || t('unnamedText'), textContent)
     setTextName('')
     setTextContent('')
     setIsAddModalOpen(false)
   }
 
   const handleDelete = async (sourceId: string) => {
-    if (window.confirm('確定要刪除這個來源嗎？')) {
+    if (window.confirm(t('deleteConfirm'))) {
       await deleteSource(sourceId)
     }
   }
+
+  const handleReembed = async (sourceId: string) => {
+    setReembeddingId(sourceId)
+    await reembedSource(sourceId)
+    setReembeddingId(null)
+  }
+
+  // 可重新嵌入的文件類型
+  const isReembedableType = (type: SourceType) => ['pdf', 'text'].includes(type)
 
   return (
     <div className="h-full flex flex-col">
       {/* 標題區 */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">來源</h2>
+          <h2 className="font-semibold text-gray-900">{t('title')}</h2>
           <Button
             size="sm"
             onClick={() => setIsAddModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-1" />
-            新增來源
+            {t('addSource')}
           </Button>
         </div>
 
@@ -160,7 +174,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search sources..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -196,7 +210,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
           ) : (
             <Square className="w-4 h-4" />
           )}
-          選取所有來源
+          {t('selectAll')}
         </button>
       </div>
 
@@ -204,8 +218,8 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
       <div className="flex-1 overflow-y-auto p-2">
         {filteredSources.length === 0 ? (
           <div className="text-center py-8 text-gray-500 text-sm">
-            <p>沒有來源</p>
-            <p className="mt-1">點擊「新增來源」開始</p>
+            <p>{t('noSources')}</p>
+            <p className="mt-1">{t('noSourcesDesc')}</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -243,6 +257,20 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                     </span>
                   )}
 
+                  {isReembedableType(source.type) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleReembed(source.id)
+                      }}
+                      disabled={reembeddingId === source.id}
+                      className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-blue-50 transition-all"
+                      title={t('reembed')}
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-blue-500 ${reembeddingId === source.id ? 'animate-spin' : ''}`} />
+                    </button>
+                  )}
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -263,17 +291,17 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="新增來源"
+        title={t('addSourceModal')}
       >
         <div className="space-y-4">
           {/* 類型選擇 */}
           <div className="flex gap-2 flex-wrap">
             {[
-              { type: 'file' as const, icon: Upload, label: '文件' },
-              { type: 'audio' as const, icon: Mic, label: '音檔' },
-              { type: 'url' as const, icon: Link, label: '網址' },
+              { type: 'file' as const, icon: Upload, label: t('addTypes.file') },
+              { type: 'audio' as const, icon: Mic, label: t('addTypes.audio') },
+              { type: 'url' as const, icon: Link, label: t('addTypes.url') },
               { type: 'youtube' as const, icon: Youtube, label: 'YouTube' },
-              { type: 'text' as const, icon: FileText, label: '文字' },
+              { type: 'text' as const, icon: FileText, label: t('addTypes.text') },
             ].map(({ type, icon: Icon, label }) => (
               <button
                 key={type}
@@ -305,8 +333,8 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                 className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary-500 transition-colors"
               >
                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">點擊選擇文件</p>
-                <p className="text-xs text-gray-400 mt-1">支援 PDF、TXT、DOCX、XLSX、CSV</p>
+                <p className="text-sm text-gray-600">{t('fileUpload')}</p>
+                <p className="text-xs text-gray-400 mt-1">{t('fileSupport')}</p>
               </div>
             </div>
           )}
@@ -325,14 +353,14 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                 className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary-500 transition-colors"
               >
                 <Mic className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">點擊選擇音檔</p>
-                <p className="text-xs text-gray-400 mt-1">支援 MP3、WAV、M4A、OGG 等格式</p>
+                <p className="text-sm text-gray-600">{t('audioUpload')}</p>
+                <p className="text-xs text-gray-400 mt-1">{t('audioSupport')}</p>
               </div>
 
               {/* STT 提供商選擇 */}
               <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  語音轉文字服務
+                  {t('sttService')}
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {sttProviders.map((provider) => (
@@ -363,7 +391,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                 {/* 語言選擇 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    語言
+                    {t('language')}
                   </label>
                   <select
                     value={sttLanguage}
@@ -374,7 +402,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
                     <option value="ko">한국어</option>
-                    <option value="auto">自動偵測</option>
+                    <option value="auto">{t('autoDetect')}</option>
                   </select>
                 </div>
               </div>
@@ -382,7 +410,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
               {isUploading && (
                 <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-700 flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                  正在轉錄音檔，請稍候...
+                  {t('transcribing')}
                 </div>
               )}
             </div>
@@ -401,7 +429,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                   loading={isUploading}
                   disabled={!urlInput.trim()}
                 >
-                  新增
+                  {t('common:add')}
                 </Button>
               </div>
             </div>
@@ -410,12 +438,12 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
           {addType === 'text' && (
             <div className="space-y-3">
               <Input
-                placeholder="標題（選填）"
+                placeholder={t('titlePlaceholder')}
                 value={textName}
                 onChange={(e) => setTextName(e.target.value)}
               />
               <textarea
-                placeholder="貼上或輸入文字內容..."
+                placeholder={t('textPlaceholder')}
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
                 className="w-full h-40 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
@@ -426,7 +454,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
                   loading={isUploading}
                   disabled={!textContent.trim()}
                 >
-                  新增
+                  {t('common:add')}
                 </Button>
               </div>
             </div>

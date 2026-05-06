@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Send, Sparkles, Copy, ThumbsUp, ThumbsDown, Bookmark } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -11,6 +12,7 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ notebookId }: ChatPanelProps) {
+  const { t } = useTranslation('chat')
   const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -62,23 +64,23 @@ export default function ChatPanel({ notebookId }: ChatPanelProps) {
   // 複製全部對話
   const handleCopyAll = () => {
     const allContent = messages
-      .map((m) => `${m.role === 'user' ? '用戶' : 'AI'}: ${m.content}`)
+      .map((m) => `${m.role === 'user' ? t('user') : t('ai')}: ${m.content}`)
       .join('\n\n')
     navigator.clipboard.writeText(allContent)
-    alert('已複製全部對話')
+    alert(t('copiedAll'))
   }
 
   // 匯出對話
   const handleExport = () => {
     const allContent = messages
-      .map((m) => `## ${m.role === 'user' ? '用戶' : 'AI'}\n\n${m.content}`)
+      .map((m) => `## ${m.role === 'user' ? t('user') : t('ai')}\n\n${m.content}`)
       .join('\n\n---\n\n')
 
     const blob = new Blob([allContent], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `對話記錄_${new Date().toISOString().slice(0, 10)}.md`
+    a.download = `${t('exportPrefix')}${new Date().toISOString().slice(0, 10)}.md`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -89,13 +91,13 @@ export default function ChatPanel({ notebookId }: ChatPanelProps) {
     <div className="h-full flex flex-col">
       {/* 標題區 */}
       <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">對話</h2>
+        <h2 className="font-semibold text-gray-900">{t('title')}</h2>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleExport} disabled={messages.length === 0}>
-            Export
+            {t('export')}
           </Button>
           <Button variant="ghost" size="sm" onClick={handleCopyAll} disabled={messages.length === 0}>
-            Copy
+            {t('copyAll')}
           </Button>
         </div>
       </div>
@@ -108,10 +110,10 @@ export default function ChatPanel({ notebookId }: ChatPanelProps) {
               <Sparkles className="w-6 h-6 text-primary-600" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              新增來源即可開始使用
+              {t('startUsing')}
             </h3>
             <p className="text-gray-500 text-sm max-w-sm">
-              上傳文件、新增網址或 YouTube 影片，AI 將根據這些來源回答你的問題
+              {t('startUsingDesc')}
             </p>
 
             {/* 建議問題 */}
@@ -154,7 +156,7 @@ export default function ChatPanel({ notebookId }: ChatPanelProps) {
                   </div>
                   <div className="mt-2 flex items-center gap-1">
                     <span className="inline-block w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
-                    <span className="text-xs text-gray-400">生成中...</span>
+                    <span className="text-xs text-gray-400">{t('generating')}</span>
                   </div>
                 </div>
               </div>
@@ -174,13 +176,13 @@ export default function ChatPanel({ notebookId }: ChatPanelProps) {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="開始輸入..."
+              placeholder={t('inputPlaceholder')}
               rows={1}
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               style={{ minHeight: '48px', maxHeight: '120px' }}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-              {selectedIds.length > 0 ? `${selectedIds.length} 個來源` : '所有來源'}
+              {selectedIds.length > 0 ? t('selectedSources', { count: selectedIds.length }) : t('allSources')}
             </span>
           </div>
           <Button
@@ -204,6 +206,7 @@ function MessageBubble({
   message: ChatMessage
   onCopy: () => void
 }) {
+  const { t } = useTranslation('chat')
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const isUser = message.role === 'user'
@@ -221,7 +224,7 @@ function MessageBubble({
     if (!isBookmarked) {
       // 複製到剪貼簿作為「儲存」的暫時方案
       navigator.clipboard.writeText(message.content)
-      alert('已儲存至剪貼簿')
+      alert(t('savedToClipboard'))
     }
   }
 
@@ -261,7 +264,7 @@ function MessageBubble({
         {/* 來源引用 */}
         {!isUser && message.source_refs && message.source_refs.length > 0 && (
           <div className="mt-2 text-xs text-gray-500">
-            引用來源: {message.source_refs.map((ref) => ref.source_name).join(', ')}
+            {t('sourceRef')} {message.source_refs.map((ref) => ref.source_name).join(', ')}
           </div>
         )}
 
@@ -271,28 +274,28 @@ function MessageBubble({
             <button
               onClick={onCopy}
               className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-              title="複製"
+              title={t('copyTitle')}
             >
               <Copy className="w-4 h-4 text-gray-400" />
             </button>
             <button
               onClick={handleThumbsUp}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${feedback === 'up' ? 'bg-green-100' : ''}`}
-              title="讚"
+              title={t('thumbsUp')}
             >
               <ThumbsUp className={`w-4 h-4 ${feedback === 'up' ? 'text-green-600' : 'text-gray-400'}`} />
             </button>
             <button
               onClick={handleThumbsDown}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${feedback === 'down' ? 'bg-red-100' : ''}`}
-              title="倒讚"
+              title={t('thumbsDown')}
             >
               <ThumbsDown className={`w-4 h-4 ${feedback === 'down' ? 'text-red-600' : 'text-gray-400'}`} />
             </button>
             <button
               onClick={handleBookmark}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${isBookmarked ? 'bg-yellow-100' : ''}`}
-              title="儲存至筆記"
+              title={t('bookmark')}
             >
               <Bookmark className={`w-4 h-4 ${isBookmarked ? 'text-yellow-600' : 'text-gray-400'}`} />
             </button>

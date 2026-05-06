@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface SplashScreenProps {
   duration?: number
@@ -7,6 +8,7 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ duration = 3000, onComplete }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false)
+  const { t } = useTranslation()
 
   useEffect(() => {
     // 開始淡出動畫
@@ -36,7 +38,7 @@ export default function SplashScreen({ duration = 3000, onComplete }: SplashScre
         <div className={`transform transition-all duration-1000 ${fadeOut ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
           <img
             src="/logo.jpg"
-            alt="亮言 NoteBookLLM"
+            alt={t('common:splashAlt')}
             className="w-auto max-w-[80vw] max-h-[60vh] rounded-2xl shadow-2xl animate-fade-in"
           />
         </div>
@@ -48,7 +50,7 @@ export default function SplashScreen({ duration = 3000, onComplete }: SplashScre
             <span className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
             <span className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
-          <span className="text-gray-500 text-sm ml-2">載入中...</span>
+          <span className="text-gray-500 text-sm ml-2">{t('common:loading')}</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Source, SourceType } from '@/types'
 import * as sourceApi from '@/api/sources'
 import type { UploadOptions } from '@/api/sources'
+import i18n from '@/i18n'
 
 interface SourceState {
   sources: Source[]
@@ -19,6 +20,7 @@ interface SourceState {
   addYoutube: (notebookId: string, url: string) => Promise<Source | null>
   addText: (notebookId: string, name: string, content: string) => Promise<Source | null>
   deleteSource: (sourceId: string) => Promise<void>
+  reembedSource: (sourceId: string) => Promise<void>
   toggleSelection: (sourceId: string) => void
   selectAll: () => void
   clearSelection: () => void
@@ -48,7 +50,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
         set({ sources: response.data.data })
       }
     } catch (error) {
-      set({ error: '無法載入來源列表' })
+      set({ error: i18n.t('source:error.loadSources') })
     } finally {
       set({ isLoading: false })
     }
@@ -67,7 +69,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       }
       return null
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '上傳文件失敗'
+      const errorMessage = error instanceof Error ? error.message : i18n.t('source:error.uploadFile')
       set({ error: errorMessage })
       return null
     } finally {
@@ -88,7 +90,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       }
       return null
     } catch (error) {
-      set({ error: '新增網址來源失敗' })
+      set({ error: i18n.t('source:error.addUrl') })
       return null
     } finally {
       set({ isUploading: false })
@@ -108,7 +110,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       }
       return null
     } catch (error) {
-      set({ error: '新增 YouTube 來源失敗' })
+      set({ error: i18n.t('source:error.addYoutube') })
       return null
     } finally {
       set({ isUploading: false })
@@ -128,7 +130,7 @@ export const useSourceStore = create<SourceState>((set, get) => ({
       }
       return null
     } catch (error) {
-      set({ error: '新增文字來源失敗' })
+      set({ error: i18n.t('source:error.addText') })
       return null
     } finally {
       set({ isUploading: false })
@@ -143,7 +145,15 @@ export const useSourceStore = create<SourceState>((set, get) => ({
         selectedIds: state.selectedIds.filter((id) => id !== sourceId),
       }))
     } catch (error) {
-      set({ error: '刪除來源失敗' })
+      set({ error: i18n.t('source:error.deleteSource') })
+    }
+  },
+
+  reembedSource: async (sourceId: string) => {
+    try {
+      await sourceApi.reembedSource(sourceId)
+    } catch (error) {
+      set({ error: i18n.t('source:error.reembedSource') })
     }
   },
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Plus,
   BookOpen,
@@ -24,6 +25,7 @@ const FOLDER_EMOJIS = ['📁', '📂', '📚', '💼', '🎯', '🚀', '💡', '
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation(['home', 'common'])
   const [isCreateNotebookModalOpen, setIsCreateNotebookModalOpen] = useState(false)
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false)
   const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false)
@@ -92,7 +94,7 @@ export default function HomePage() {
 
   const handleDeleteNotebook = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (window.confirm('確定要刪除這個筆記本嗎？')) {
+    if (window.confirm(t('deleteNotebookConfirm'))) {
       await deleteNotebook(id)
       fetchFoldersWithNotebooks()
     }
@@ -100,7 +102,7 @@ export default function HomePage() {
 
   const handleDeleteFolder = async (e: React.MouseEvent, folder: Folder) => {
     e.stopPropagation()
-    if (window.confirm(`確定要刪除資料夾「${folder.name}」嗎？資料夾內的筆記本會移至未分類。`)) {
+    if (window.confirm(t('deleteFolderConfirm', { name: folder.name }))) {
       await deleteFolder(folder.id)
     }
   }
@@ -140,7 +142,7 @@ export default function HomePage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('zh-TW', {
+    return date.toLocaleDateString(t('common:dateLocale'), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -151,7 +153,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-surface-primary">
         <Header onCreateNotebook={() => setIsCreateNotebookModalOpen(true)} />
-        <Loading fullscreen message="載入中..." />
+        <Loading fullscreen message={t('common:loading')} />
       </div>
     )
   }
@@ -165,19 +167,19 @@ export default function HomePage() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">我的筆記本</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
             <p className="text-gray-600 mt-1">
-              {folders.length} 個資料夾，{totalNotebooks} 個筆記本
+              {t('folderCount', { count: folders.length, total: totalNotebooks })}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => setIsCreateFolderModalOpen(true)}>
               <FolderPlus className="w-4 h-4 mr-2" />
-              新增資料夾
+              {t('addFolder')}
             </Button>
             <Button onClick={() => setIsCreateNotebookModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              新增筆記本
+              {t('addNotebook')}
             </Button>
           </div>
         </div>
@@ -187,11 +189,11 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-primary-600" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">還沒有筆記本</h3>
-            <p className="text-gray-600 mb-6">建立第一個筆記本，開始整理你的知識</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noNotebooks')}</h3>
+            <p className="text-gray-600 mb-6">{t('noNotebooksDesc')}</p>
             <Button onClick={() => setIsCreateNotebookModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              建立筆記本
+              {t('createNotebook')}
             </Button>
           </div>
         ) : (
@@ -223,7 +225,7 @@ export default function HomePage() {
                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                     <FolderOpen className="w-5 h-5 text-gray-400" />
-                    <span className="font-medium text-gray-700">未分類</span>
+                    <span className="font-medium text-gray-700">{t('uncategorized')}</span>
                     <span className="text-sm text-gray-500">({uncategorizedNotebooks.length})</span>
                   </div>
                 </div>
@@ -249,11 +251,11 @@ export default function HomePage() {
       <Modal
         isOpen={isCreateNotebookModalOpen}
         onClose={() => setIsCreateNotebookModalOpen(false)}
-        title="建立新筆記本"
+        title={t('createNotebookModal')}
       >
         <div className="space-y-4">
           <Input
-            placeholder="輸入筆記本名稱"
+            placeholder={t('notebookNamePlaceholder')}
             value={newNotebookName}
             onChange={(e) => setNewNotebookName(e.target.value)}
             onKeyDown={(e) => {
@@ -263,10 +265,10 @@ export default function HomePage() {
           />
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setIsCreateNotebookModalOpen(false)}>
-              取消
+              {t('common:cancel')}
             </Button>
             <Button onClick={handleCreateNotebook} loading={isCreating} disabled={!newNotebookName.trim()}>
-              建立
+              {t('common:create')}
             </Button>
           </div>
         </div>
@@ -282,11 +284,11 @@ export default function HomePage() {
           setNewFolderName('')
           setNewFolderEmoji('📁')
         }}
-        title={editingFolder ? '編輯資料夾' : '建立新資料夾'}
+        title={editingFolder ? t('editFolderModal') : t('createFolderModal')}
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">選擇圖示</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('chooseIcon')}</label>
             <div className="flex flex-wrap gap-2">
               {FOLDER_EMOJIS.map((emoji) => (
                 <button
@@ -304,7 +306,7 @@ export default function HomePage() {
             </div>
           </div>
           <Input
-            placeholder="輸入資料夾名稱"
+            placeholder={t('folderNamePlaceholder')}
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             onKeyDown={(e) => {
@@ -323,14 +325,14 @@ export default function HomePage() {
                 setEditingFolder(null)
               }}
             >
-              取消
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={editingFolder ? handleUpdateFolder : handleCreateFolder}
               loading={isCreating}
               disabled={!newFolderName.trim()}
             >
-              {editingFolder ? '儲存' : '建立'}
+              {editingFolder ? t('common:save') : t('common:create')}
             </Button>
           </div>
         </div>
@@ -363,6 +365,7 @@ function FolderSection({
   onDrop: (e: React.DragEvent) => void
   formatDate: (date: string) => string
 }) {
+  const { t } = useTranslation(['home', 'common'])
   return (
     <div
       className="bg-white rounded-xl border border-gray-200 overflow-hidden"
@@ -388,14 +391,14 @@ function FolderSection({
           <button
             onClick={onEdit}
             className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
-            title="編輯"
+            title={t('common:edit')}
           >
             <Edit2 className="w-4 h-4 text-gray-500" />
           </button>
           <button
             onClick={onDelete}
             className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-            title="刪除"
+            title={t('common:delete')}
           >
             <Trash2 className="w-4 h-4 text-red-500" />
           </button>
@@ -420,7 +423,7 @@ function FolderSection({
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p>拖曳筆記本到這裡</p>
+              <p>{t('dragNotebookHere')}</p>
             </div>
           )}
         </div>
@@ -443,6 +446,7 @@ function NotebookCard({
   onDragStart: () => void
   formatDate: (date: string) => string
 }) {
+  const { t } = useTranslation('home')
   return (
     <div
       onClick={onClick}
@@ -465,7 +469,7 @@ function NotebookCard({
       <h3 className="font-semibold text-gray-900 mb-1 truncate">{notebook.name}</h3>
 
       <div className="flex items-center gap-4 text-sm text-gray-500">
-        <span>{notebook.source_count} 個來源</span>
+        <span>{t('sourceCount', { count: notebook.source_count })}</span>
         <span className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
           {formatDate(notebook.updated_at)}

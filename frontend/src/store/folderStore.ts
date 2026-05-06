@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Folder, Notebook } from '@/types'
 import * as foldersApi from '@/api/folders'
+import i18n from '@/i18n'
 
 interface FolderState {
   folders: Folder[]
@@ -36,8 +37,8 @@ export const useFolderStore = create<FolderState>((set, get) => ({
         })
       }
     } catch (error) {
-      set({ error: '載入資料夾失敗', isLoading: false })
-      console.error('載入資料夾失敗:', error)
+      set({ error: i18n.t('common:error.loadFolders'), isLoading: false })
+      console.error(`${i18n.t('common:error.loadFolders')}:`, error)
     }
   },
 
@@ -53,7 +54,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
       }
       return null
     } catch (error) {
-      console.error('建立資料夾失敗:', error)
+      console.error(`${i18n.t('common:error.createFolder')}:`, error)
       return null
     }
   },
@@ -69,7 +70,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
         }))
       }
     } catch (error) {
-      console.error('更新資料夾失敗:', error)
+      console.error(`${i18n.t('common:error.updateFolder')}:`, error)
     }
   },
 
@@ -81,7 +82,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
         get().fetchFoldersWithNotebooks()
       }
     } catch (error) {
-      console.error('刪除資料夾失敗:', error)
+      console.error(`${i18n.t('common:error.deleteFolder')}:`, error)
     }
   },
 
@@ -108,7 +109,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
       // 重新載入
       get().fetchFoldersWithNotebooks()
     } catch (error) {
-      console.error('移動筆記本失敗:', error)
+      console.error(`${i18n.t('common:error.moveNotebook')}:`, error)
     }
   },
 
@@ -121,7 +122,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
           .filter((f): f is Folder => f !== undefined)
       }))
     } catch (error) {
-      console.error('重新排序失敗:', error)
+      console.error(`${i18n.t('common:error.reorderFailed')}:`, error)
     }
   }
 }))

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Notebook } from '@/types'
 import * as notebookApi from '@/api/notebooks'
+import i18n from '@/i18n'
 
 interface NotebookState {
   notebooks: Notebook[]
@@ -32,7 +33,7 @@ export const useNotebookStore = create<NotebookState>((set, _get) => ({
         set({ notebooks: response.data.data })
       }
     } catch (error) {
-      set({ error: '無法載入筆記本列表' })
+      set({ error: i18n.t('common:error.loadNotebooks') })
     } finally {
       set({ isLoading: false })
     }
@@ -51,7 +52,7 @@ export const useNotebookStore = create<NotebookState>((set, _get) => ({
       }
       return null
     } catch (error) {
-      set({ error: '建立筆記本失敗' })
+      set({ error: i18n.t('common:error.createNotebook') })
       return null
     } finally {
       set({ isLoading: false })
@@ -66,7 +67,7 @@ export const useNotebookStore = create<NotebookState>((set, _get) => ({
         set({ currentNotebook: response.data.data })
       }
     } catch (error) {
-      set({ error: '無法載入筆記本', currentNotebook: null })
+      set({ error: i18n.t('common:error.loadNotebook'), currentNotebook: null })
     } finally {
       set({ isLoading: false })
     }
@@ -86,7 +87,7 @@ export const useNotebookStore = create<NotebookState>((set, _get) => ({
         }))
       }
     } catch (error) {
-      set({ error: '更新筆記本失敗' })
+      set({ error: i18n.t('common:error.updateNotebook') })
     }
   },
 
@@ -98,7 +99,7 @@ export const useNotebookStore = create<NotebookState>((set, _get) => ({
         currentNotebook: state.currentNotebook?.id === id ? null : state.currentNotebook,
       }))
     } catch (error) {
-      set({ error: '刪除筆記本失敗' })
+      set({ error: i18n.t('common:error.deleteNotebook') })
     }
   },
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Check, AlertCircle, RefreshCw } from 'lucide-react'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -14,6 +15,7 @@ import {
 import type { Settings, AIProvider, AIProviderInfo } from '@/types'
 
 export default function SettingsPage() {
+  const { t } = useTranslation('settings')
   const navigate = useNavigate()
   const [settings, setSettings] = useState<Settings | null>(null)
   const [providers, setProviders] = useState<AIProviderInfo[]>([])
@@ -58,7 +60,7 @@ export default function SettingsPage() {
         setProviders(providersRes.data.data.providers)
       }
     } catch (error) {
-      console.error('載入設定失敗', error)
+      console.error(t('loadSettingsFailed'), error)
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +73,7 @@ export default function SettingsPage() {
         setAvailableModels(response.data.data.models)
       }
     } catch (error) {
-      console.error('載入模型列表失敗', error)
+      console.error(t('loadModelsFailed'), error)
       setAvailableModels([])
     }
   }
@@ -79,7 +81,7 @@ export default function SettingsPage() {
   const handleTestApi = async () => {
     // Ollama 不需要 API Key
     if (formData.provider !== 'ollama' && !formData.apiKey) {
-      setTestResult({ success: false, message: '請輸入 API Key' })
+      setTestResult({ success: false, message: t('enterApiKey') })
       return
     }
 
@@ -90,12 +92,12 @@ export default function SettingsPage() {
       const response = await testApi(formData.provider, formData.apiKey || undefined)
 
       if (response.data.success) {
-        setTestResult({ success: true, message: response.data.data?.message || 'API 連線成功！' })
+        setTestResult({ success: true, message: response.data.data?.message || t('apiConnected') })
       } else {
-        setTestResult({ success: false, message: response.data.error || '連線失敗' })
+        setTestResult({ success: false, message: response.data.error || t('connectionFailed') })
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '連線測試失敗'
+      const errorMessage = error instanceof Error ? error.message : t('connectionTestFailed')
       setTestResult({ success: false, message: errorMessage })
     } finally {
       setIsTesting(false)
@@ -105,7 +107,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     // Ollama 不需要 API Key
     if (formData.provider !== 'ollama' && !formData.apiKey) {
-      setTestResult({ success: false, message: '請輸入 API Key' })
+      setTestResult({ success: false, message: t('enterApiKey') })
       return
     }
 
@@ -119,13 +121,13 @@ export default function SettingsPage() {
       })
 
       if (response.data.success) {
-        setTestResult({ success: true, message: '設定已儲存！' })
+        setTestResult({ success: true, message: t('settingsSaved') })
         await fetchData()
       } else {
-        setTestResult({ success: false, message: response.data.error || '儲存失敗' })
+        setTestResult({ success: false, message: response.data.error || t('saveFailed') })
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '儲存設定失敗'
+      const errorMessage = error instanceof Error ? error.message : t('saveSettingsFailed')
       setTestResult({ success: false, message: errorMessage })
     } finally {
       setIsSaving(false)
@@ -163,7 +165,7 @@ export default function SettingsPage() {
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
-        <h1 className="font-semibold text-lg">AI 設定</h1>
+        <h1 className="font-semibold text-lg">{t('title')}</h1>
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-8">
@@ -175,9 +177,9 @@ export default function SettingsPage() {
                 <Check className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-medium text-green-700">AI 服務就緒</p>
+                <p className="font-medium text-green-700">{t('serviceReady')}</p>
                 <p className="text-sm text-gray-500">
-                  目前使用: {PROVIDER_INFO[settings.current_provider || 'gemini']?.name}
+                  {t('currentProvider')} {PROVIDER_INFO[settings.current_provider || 'gemini']?.name}
                 </p>
               </div>
             </div>
@@ -187,8 +189,8 @@ export default function SettingsPage() {
                 <AlertCircle className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="font-medium text-amber-700">尚未設定</p>
-                <p className="text-sm text-gray-500">請選擇 AI 提供商並設定 API Key</p>
+                <p className="font-medium text-amber-700">{t('notConfigured')}</p>
+                <p className="text-sm text-gray-500">{t('notConfiguredDesc')}</p>
               </div>
             </div>
           )}
@@ -196,7 +198,7 @@ export default function SettingsPage() {
 
         {/* 提供商選擇 */}
         <div className="card p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">選擇 AI 提供商</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('selectProvider')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {providers.map((provider) => {
               const info = PROVIDER_INFO[provider.id]
@@ -214,25 +216,25 @@ export default function SettingsPage() {
                     <span className="text-xl">{info?.icon}</span>
                     <span className="font-medium">{info?.name}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">{info?.description}</p>
+                  <p className="text-xs text-gray-500 mb-2">{info?.description ? t(info.description) : ''}</p>
                   <div className="flex flex-wrap gap-1">
                     {provider.available ? (
                       <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">
-                        可用
+                        {t('available')}
                       </span>
                     ) : (
                       <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded">
-                        未設定
+                        {t('notConfiguredLabel')}
                       </span>
                     )}
                     {provider.supports_embedding && (
                       <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                        嵌入
+                        {t('embedding')}
                       </span>
                     )}
                     {provider.supports_image && (
                       <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
-                        圖片
+                        {t('image')}
                       </span>
                     )}
                   </div>
@@ -245,17 +247,17 @@ export default function SettingsPage() {
         {/* API Key 設定 */}
         <div className="card p-6 space-y-4">
           <h2 className="text-lg font-semibold">
-            {PROVIDER_INFO[formData.provider]?.name} 設定
+            {t('providerSettings', { name: PROVIDER_INFO[formData.provider]?.name })}
           </h2>
 
           {formData.provider !== 'ollama' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                API Key
+                {t('apiKey')}
               </label>
               <Input
                 type="password"
-                placeholder={`輸入 ${PROVIDER_INFO[formData.provider]?.name} API Key`}
+                placeholder={t('apiKeyPlaceholder', { name: PROVIDER_INFO[formData.provider]?.name })}
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
               />
@@ -266,15 +268,14 @@ export default function SettingsPage() {
                   rel="noopener noreferrer"
                   className="text-primary-600 hover:underline"
                 >
-                  點此取得 API Key
+                  {t('getApiKey')}
                 </a>
               </p>
             </div>
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">
-                Ollama 是本地模型，不需要 API Key。
-                請確保已安裝並啟動 Ollama 服務。
+                {t('ollamaNoKey')}
               </p>
               <a
                 href="https://ollama.ai/download"
@@ -282,21 +283,21 @@ export default function SettingsPage() {
                 rel="noopener noreferrer"
                 className="text-sm text-primary-600 hover:underline"
               >
-                下載 Ollama
+                {t('downloadOllama')}
               </a>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              模型
-            </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('model')}
+              </label>
             <select
               value={formData.model}
               onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="">使用預設模型</option>
+              <option value="">{t('useDefaultModel')}</option>
               {availableModels.map((model) => (
                 <option key={model} value={model}>
                   {model}
@@ -328,27 +329,27 @@ export default function SettingsPage() {
               onClick={handleTestApi}
               loading={isTesting}
             >
-              測試連線
+              {t('testConnection')}
             </Button>
             <Button
               onClick={handleSave}
               loading={isSaving}
             >
-              儲存設定
+              {t('saveSettings')}
             </Button>
           </div>
         </div>
 
         {/* 功能說明 */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium mb-2">各提供商特色</h3>
+          <h3 className="font-medium mb-2">{t('providerFeatures')}</h3>
           <ul className="text-sm text-gray-600 space-y-1">
-            <li><strong>Gemini</strong> - Google 多模態模型，支援圖片生成</li>
-            <li><strong>OpenAI</strong> - GPT-4.1/5.1 + DALL-E 3，完整功能</li>
-            <li><strong>Anthropic</strong> - Claude 系列，超長上下文</li>
-            <li><strong>Ollama</strong> - 本地模型，免費無限使用</li>
-            <li><strong>Groq</strong> - 超高速推理，適合即時應用</li>
-            <li><strong>DeepSeek</strong> - R1 推理模型，深度思考能力</li>
+            <li>{t('providerDescriptions.gemini')}</li>
+            <li>{t('providerDescriptions.openai')}</li>
+            <li>{t('providerDescriptions.anthropic')}</li>
+            <li>{t('providerDescriptions.ollama')}</li>
+            <li>{t('providerDescriptions.groq')}</li>
+            <li>{t('providerDescriptions.deepseek')}</li>
           </ul>
         </div>
       </main>

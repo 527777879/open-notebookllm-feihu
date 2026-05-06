@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ChatMessage, SourceReference } from '@/types'
 import * as chatApi from '@/api/chat'
+import i18n from '@/i18n'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -38,7 +39,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         set({ messages: response.data.data })
       }
     } catch (error) {
-      set({ error: '無法載入對話歷史' })
+      set({ error: i18n.t('chat:error.loadHistory') })
     } finally {
       set({ isLoading: false })
     }
@@ -59,7 +60,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({ messages: [...state.messages, userMessage] }))
 
     try {
-      const response = await chatApi.sendMessage(notebookId, message, sourceIds)
+      const response = await chatApi.sendMessage(notebookId, message, sourceIds, i18n.language)
       if (response.data.success && response.data.data) {
         // 更新用戶訊息 ID 並添加助手回應
         set((state) => ({
@@ -71,7 +72,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }))
       }
     } catch (error) {
-      set({ error: '發送訊息失敗' })
+      set({ error: i18n.t('chat:error.sendMessage') })
       // 移除臨時訊息
       set((state) => ({ messages: state.messages.slice(0, -1) }))
     } finally {
@@ -97,6 +98,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       notebookId,
       message,
       sourceIds,
+      i18n.language,
       // onChunk
       (chunk: string) => {
         set((state) => ({ streamingContent: state.streamingContent + chunk }))
@@ -148,7 +150,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         messages: state.messages.filter((m) => m.id !== messageId),
       }))
     } catch (error) {
-      set({ error: '刪除訊息失敗' })
+      set({ error: i18n.t('chat:error.deleteMessage') })
     }
   },
 
@@ -157,7 +159,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await chatApi.clearMessages(notebookId)
       set({ messages: [] })
     } catch (error) {
-      set({ error: '清空對話失敗' })
+      set({ error: i18n.t('chat:error.clearMessages') })
     }
   },
 

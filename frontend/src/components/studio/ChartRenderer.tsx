@@ -15,6 +15,7 @@ import {
 import { Bar, Line, Pie, Doughnut, Radar, PolarArea, Scatter } from 'react-chartjs-2'
 import type { ChartConfig, InfographicData } from '@/types'
 import { Lightbulb, TrendingUp, AlertCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // 註冊 Chart.js 組件
 ChartJS.register(
@@ -37,6 +38,7 @@ interface ChartRendererProps {
 
 // 單一圖表組件
 function SingleChart({ chart }: { chart: ChartConfig }) {
+  const { t } = useTranslation('studio')
   const chartConfig = chart.config
 
   // 根據類型渲染對應的圖表
@@ -90,7 +92,7 @@ function SingleChart({ chart }: { chart: ChartConfig }) {
         <div className="pt-3 border-t border-gray-100">
           <p className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
             <Lightbulb className="w-3 h-3" />
-            關鍵洞察
+            {t('chartResult.keyInsights')}
           </p>
           <ul className="space-y-1">
             {chart.insights.map((insight, index) => (
@@ -108,11 +110,12 @@ function SingleChart({ chart }: { chart: ChartConfig }) {
 
 // 資訊圖表渲染組件
 export default function ChartRenderer({ data }: ChartRendererProps) {
+  const { t } = useTranslation('studio')
   if (!data || !data.charts || data.charts.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-        <p>無法顯示圖表資料</p>
+        <p>{t('chartResult.cannotDisplay')}</p>
       </div>
     )
   }
@@ -127,7 +130,7 @@ export default function ChartRenderer({ data }: ChartRendererProps) {
             <p className="text-sm text-gray-500 mt-1">{data.description}</p>
           )}
           {data.data_source && (
-            <p className="text-xs text-gray-400 mt-1">資料來源：{data.data_source}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('chartResult.dataSource', { source: data.data_source })}</p>
           )}
         </div>
       )}
@@ -137,7 +140,7 @@ export default function ChartRenderer({ data }: ChartRendererProps) {
         <div className="rounded-lg overflow-hidden border border-gray-200">
           <img
             src={data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`}
-            alt={data.title || '資訊圖表'}
+            alt={data.title || t('chartResult.infographicAlt')}
             className="w-full"
           />
         </div>
@@ -158,7 +161,7 @@ export default function ChartRenderer({ data }: ChartRendererProps) {
             <div>
               <h4 className="font-medium text-gray-900 flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />
-                關鍵發現
+                {t('chartResult.keyFindings')}
               </h4>
               <ul className="space-y-2">
                 {data.summary.key_findings.map((finding, index) => (
@@ -178,7 +181,7 @@ export default function ChartRenderer({ data }: ChartRendererProps) {
             <div>
               <h4 className="font-medium text-gray-900 flex items-center gap-2 mb-2">
                 <Lightbulb className="w-4 h-4 text-amber-600" />
-                建議行動
+                {t('chartResult.recommendations')}
               </h4>
               <ul className="space-y-2">
                 {data.summary.recommendations.map((rec, index) => (
@@ -196,12 +199,12 @@ export default function ChartRenderer({ data }: ChartRendererProps) {
       {/* 元數據 */}
       {data.metadata && (
         <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-          <span>共 {data.metadata.total_charts} 個圖表</span>
+          <span>{t('chartResult.chartCount', { count: data.metadata.total_charts })}</span>
           {data.metadata.chart_types && (
-            <span>類型：{data.metadata.chart_types.join(', ')}</span>
+            <span>{t('chartResult.chartTypes', { types: data.metadata.chart_types.join(', ') })}</span>
           )}
           {data.metadata.data_points && (
-            <span>數據點：{data.metadata.data_points}</span>
+            <span>{t('chartResult.dataPoints', { count: data.metadata.data_points })}</span>
           )}
         </div>
       )}

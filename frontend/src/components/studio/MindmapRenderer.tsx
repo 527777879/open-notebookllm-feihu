@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
 import { Download, Copy, Check, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface MindmapNode {
   text?: string
@@ -39,6 +40,7 @@ mermaid.initialize({
 })
 
 export default function MindmapRenderer({ data }: MindmapRendererProps) {
+  const { t } = useTranslation(['studio', 'common'])
   const containerRef = useRef<HTMLDivElement>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [copied, setCopied] = useState(false)
@@ -58,7 +60,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
 
       // 如果沒有 Mermaid 代碼，從 JSON 生成
       if (!mermaidCode) {
-        mermaidCode = generateMermaidCode(data)
+        mermaidCode = generateMermaidCode(data, t)
       }
 
       // 渲染 Mermaid
@@ -67,11 +69,11 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
       setRenderError(null)
     } catch (error) {
       console.error('Mermaid 渲染失敗:', error)
-      setRenderError('心智圖渲染失敗，顯示文字版本')
+      setRenderError(t('mindmapResult.renderFailed'))
     }
   }
 
-  const generateMermaidCode = (mindmapData: MindmapData): string => {
+  const generateMermaidCode = (mindmapData: MindmapData, tFunc: any): string => {
     const lines = ['mindmap']
 
     // 處理中心節點
@@ -84,7 +86,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
     } else if (mindmapData.central_text) {
       centralText = mindmapData.central_text
     } else {
-      centralText = '中心主題'
+      centralText = tFunc('mindmapResult.centralTheme')
     }
 
     lines.push(`  root((${centralText}))`)
@@ -112,7 +114,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
   }
 
   const handleCopyMermaid = () => {
-    const mermaidCode = data.mermaid || generateMermaidCode(data)
+    const mermaidCode = data.mermaid || generateMermaidCode(data, t)
     navigator.clipboard.writeText(mermaidCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -155,7 +157,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
           <button
             onClick={handleZoomOut}
             className="p-1.5 rounded hover:bg-gray-200 transition-colors"
-            title="縮小"
+            title={t('mindmapResult.zoomOut')}
           >
             <ZoomOut className="w-4 h-4" />
           </button>
@@ -165,14 +167,14 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
           <button
             onClick={handleZoomIn}
             className="p-1.5 rounded hover:bg-gray-200 transition-colors"
-            title="放大"
+            title={t('mindmapResult.zoomIn')}
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={handleResetZoom}
             className="p-1.5 rounded hover:bg-gray-200 transition-colors"
-            title="重置縮放"
+            title={t('mindmapResult.resetZoom')}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -181,15 +183,15 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
           <button
             onClick={handleCopyMermaid}
             className="flex items-center gap-1 px-2 py-1 text-sm rounded hover:bg-gray-200 transition-colors"
-            title="複製 Mermaid 代碼"
+            title={t('mindmapResult.copyMermaid')}
           >
             {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? '已複製' : 'Mermaid'}</span>
+            <span>{copied ? t('common:copied') : 'Mermaid'}</span>
           </button>
           <button
             onClick={handleDownloadSvg}
             className="flex items-center gap-1 px-2 py-1 text-sm rounded hover:bg-gray-200 transition-colors"
-            title="下載 SVG"
+            title={t('mindmapResult.downloadSvg')}
           >
             <Download className="w-4 h-4" />
             <span>SVG</span>
@@ -216,7 +218,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
             dangerouslySetInnerHTML={{ __html: svgContent }}
           />
         ) : (
-          <div className="text-gray-400 text-sm">載入中...</div>
+          <div className="text-gray-400 text-sm">{t('common:loading')}</div>
         )}
       </div>
 
@@ -224,10 +226,10 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
       {data.metadata && (
         <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
           {data.metadata.totalNodes && (
-            <span>共 {data.metadata.totalNodes} 個節點</span>
+            <span>{t('mindmapResult.nodeCount', { count: data.metadata.totalNodes })}</span>
           )}
           {data.metadata.maxDepth && (
-            <span>最大深度 {data.metadata.maxDepth} 層</span>
+            <span>{t('mindmapResult.maxDepth', { depth: data.metadata.maxDepth })}</span>
           )}
         </div>
       )}
@@ -237,6 +239,7 @@ export default function MindmapRenderer({ data }: MindmapRendererProps) {
 
 // 文字版心智圖（備援顯示）
 function TextMindmapView({ data }: { data: MindmapData }) {
+  const { t } = useTranslation('studio')
   const getCentralText = () => {
     if (typeof data.central === 'object' && data.central?.text) {
       return data.central.text
@@ -245,7 +248,7 @@ function TextMindmapView({ data }: { data: MindmapData }) {
     } else if (data.central_text) {
       return data.central_text
     }
-    return '中心主題'
+    return t('mindmapResult.centralTheme')
   }
 
   const getCentralDescription = () => {

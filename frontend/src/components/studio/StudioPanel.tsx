@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Mic,
   Video,
@@ -45,42 +46,42 @@ interface StudioPanelProps {
   notebookId: string
 }
 
-const studioItems = [
-  { type: 'summary' as const, icon: Mic, label: '語音摘要', color: 'bg-purple-100 text-purple-600' },
-  { type: 'summary' as const, icon: Video, label: '影片摘要', color: 'bg-blue-100 text-blue-600' },
-  { type: 'mindmap' as const, icon: Network, label: '心智圖', color: 'bg-green-100 text-green-600' },
-  { type: 'flowchart' as const, icon: GitBranch, label: '流程圖', color: 'bg-teal-100 text-teal-600' },
-  { type: 'diagram' as const, icon: Box, label: '架構圖', color: 'bg-violet-100 text-violet-600' },
-  { type: 'report' as const, icon: FileText, label: '報告', color: 'bg-orange-100 text-orange-600' },
-  { type: 'flashcards' as const, icon: CreditCard, label: '學習卡', color: 'bg-pink-100 text-pink-600' },
-  { type: 'quiz' as const, icon: HelpCircle, label: '測驗', color: 'bg-cyan-100 text-cyan-600' },
-  { type: 'infographic' as const, icon: BarChart3, label: '資訊圖表', color: 'bg-yellow-100 text-yellow-600' },
-  { type: 'presentation' as const, icon: Presentation, label: '簡報', color: 'bg-indigo-100 text-indigo-600' },
-  { type: 'datatable' as const, icon: Table, label: '資料表', color: 'bg-gray-100 text-gray-600' },
-  { type: 'podcast' as const, icon: Radio, label: 'Podcast', color: 'bg-red-100 text-red-600' },
-]
-
-const podcastStyles = [
-  { id: 'conversational', name: '輕鬆對談', description: '自然友善的談話風格' },
-  { id: 'educational', name: '教育講解', description: '清晰易懂的教學模式' },
-  { id: 'debate', name: '辯論討論', description: '多角度觀點交流' },
-  { id: 'interview', name: '專訪形式', description: '訪談問答模式' },
-]
-
-// 難度選項
-const difficultyOptions: { id: DifficultyLevel; name: string; description: string; color: string }[] = [
-  { id: 'easy', name: '簡單', description: '基礎定義和事實記憶', color: 'bg-green-100 text-green-700 border-green-300' },
-  { id: 'medium', name: '中等', description: '概念應用和比較分析', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  { id: 'hard', name: '困難', description: '綜合評估和問題解決', color: 'bg-red-100 text-red-700 border-red-300' },
-  { id: 'mixed', name: '混合', description: '包含各難度題目', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-]
-
-const defaultSpeakers: PodcastSpeaker[] = [
-  { name: '主持人', role: 'host', personality: '專業、親切' },
-  { name: '來賓', role: 'guest', personality: '博學、風趣' },
+const getDefaultSpeakers = (t: any): PodcastSpeaker[] => [
+  { name: t('podcast.defaultHost.name'), role: 'host', personality: t('podcast.defaultHost.personality') },
+  { name: t('podcast.defaultGuest.name'), role: 'guest', personality: t('podcast.defaultGuest.personality') },
 ]
 
 export default function StudioPanel({ notebookId }: StudioPanelProps) {
+  const { t } = useTranslation(['studio', 'common'])
+
+  const studioItems = [
+    { type: 'summary' as const, icon: Mic, label: t('items.audioSummary'), color: 'bg-purple-100 text-purple-600' },
+    { type: 'summary' as const, icon: Video, label: t('items.videoSummary'), color: 'bg-blue-100 text-blue-600' },
+    { type: 'mindmap' as const, icon: Network, label: t('items.mindmap'), color: 'bg-green-100 text-green-600' },
+    { type: 'flowchart' as const, icon: GitBranch, label: t('items.flowchart'), color: 'bg-teal-100 text-teal-600' },
+    { type: 'diagram' as const, icon: Box, label: t('items.diagram'), color: 'bg-violet-100 text-violet-600' },
+    { type: 'report' as const, icon: FileText, label: t('items.report'), color: 'bg-orange-100 text-orange-600' },
+    { type: 'flashcards' as const, icon: CreditCard, label: t('items.flashcards'), color: 'bg-pink-100 text-pink-600' },
+    { type: 'quiz' as const, icon: HelpCircle, label: t('items.quiz'), color: 'bg-cyan-100 text-cyan-600' },
+    { type: 'infographic' as const, icon: BarChart3, label: t('items.infographic'), color: 'bg-yellow-100 text-yellow-600' },
+    { type: 'presentation' as const, icon: Presentation, label: t('items.presentation'), color: 'bg-indigo-100 text-indigo-600' },
+    { type: 'datatable' as const, icon: Table, label: t('items.datatable'), color: 'bg-gray-100 text-gray-600' },
+    { type: 'podcast' as const, icon: Radio, label: t('items.podcast'), color: 'bg-red-100 text-red-600' },
+  ]
+
+  const podcastStyles = [
+    { id: 'conversational', name: t('podcast.styles.conversational.name'), description: t('podcast.styles.conversational.description') },
+    { id: 'educational', name: t('podcast.styles.educational.name'), description: t('podcast.styles.educational.description') },
+    { id: 'debate', name: t('podcast.styles.debate.name'), description: t('podcast.styles.debate.description') },
+    { id: 'interview', name: t('podcast.styles.interview.name'), description: t('podcast.styles.interview.description') },
+  ]
+
+  const difficultyOptions: { id: DifficultyLevel; name: string; description: string; color: string }[] = [
+    { id: 'easy', name: t('difficulty.options.easy.name'), description: t('difficulty.options.easy.description'), color: 'bg-green-100 text-green-700 border-green-300' },
+    { id: 'medium', name: t('difficulty.options.medium.name'), description: t('difficulty.options.medium.description'), color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+    { id: 'hard', name: t('difficulty.options.hard.name'), description: t('difficulty.options.hard.description'), color: 'bg-red-100 text-red-700 border-red-300' },
+    { id: 'mixed', name: t('difficulty.options.mixed.name'), description: t('difficulty.options.mixed.description'), color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  ]
   const [generatingType, setGeneratingType] = useState<StudioOutputType | null>(null)
   const [result, setResult] = useState<{ type: string; data: unknown } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +92,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
   const [isPodcastModalOpen, setIsPodcastModalOpen] = useState(false)
   const [podcastStyle, setPodcastStyle] = useState('conversational')
   const [podcastDuration, setPodcastDuration] = useState(10)
-  const [podcastSpeakers, setPodcastSpeakers] = useState<PodcastSpeaker[]>(defaultSpeakers)
+  const [podcastSpeakers, setPodcastSpeakers] = useState<PodcastSpeaker[]>(getDefaultSpeakers(t))
   const [withAudio, setWithAudio] = useState(false)
   const [availableVoices, setAvailableVoices] = useState<PodcastVoice[]>([])
   const [speakerVoices, setSpeakerVoices] = useState<Record<string, string>>({})
@@ -110,7 +111,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
   // 匯出結果
   const handleExport = () => {
     if (!result) {
-      alert('尚無結果可匯出')
+      alert(t('noResultExport'))
       return
     }
 
@@ -119,7 +120,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `工作室_${result.type}_${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `${t('exportPrefix')}${result.type}_${new Date().toISOString().slice(0, 10)}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -135,7 +136,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           setAvailableVoices(response.data.data.voices)
         }
       } catch (error) {
-        console.error('載入語音列表失敗:', error)
+        console.error(t('loadVoicesFailed'), error)
       }
     }
     loadVoices()
@@ -177,11 +178,11 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
         })
         setIsResultModalOpen(true)
       } else {
-        setError(response.data.error || '生成失敗，請稍後再試')
+        setError(response.data.error || t('generateFailed'))
       }
     } catch (err: unknown) {
-      console.error('生成失敗:', err)
-      const errorMessage = err instanceof Error ? err.message : '生成失敗，請檢查網路連線或後端服務'
+      console.error(t('generateFailedLog'), err)
+      const errorMessage = err instanceof Error ? err.message : t('generateFailedNetwork')
       setError(errorMessage)
     } finally {
       setGeneratingType(null)
@@ -227,11 +228,11 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
         }
         setIsResultModalOpen(true)
       } else {
-        setError(response.data.error || 'Podcast 生成失敗')
+        setError(response.data.error || t('podcast.generateFailed'))
       }
     } catch (err: unknown) {
-      console.error('生成 Podcast 失敗:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Podcast 生成失敗，請檢查網路連線或後端服務'
+      console.error(t('podcast.generateFailedLog'), err)
+      const errorMessage = err instanceof Error ? err.message : t('podcast.generateFailedNetwork')
       setError(errorMessage)
     } finally {
       setGeneratingType(null)
@@ -263,7 +264,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
     if (podcastSpeakers.length >= 4) return
     setPodcastSpeakers([
       ...podcastSpeakers,
-      { name: `講者 ${podcastSpeakers.length + 1}`, role: 'guest', personality: '' },
+      { name: `${t('podcast.speakerPrefix')}${podcastSpeakers.length + 1}`, role: 'guest', personality: '' },
     ])
   }
 
@@ -282,13 +283,13 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
     <div className="h-full flex flex-col">
       {/* 標題區 */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">工作室</h2>
+        <h2 className="font-semibold text-gray-900">{t('title')}</h2>
         <button
           onClick={handleExport}
           disabled={!result}
           className={`text-sm ${result ? 'text-primary-600 hover:text-primary-700' : 'text-gray-400 cursor-not-allowed'}`}
         >
-          Export
+          {t('export')}
         </button>
       </div>
 
@@ -324,7 +325,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           <div className="flex items-start gap-2">
             <span className="text-red-500 font-bold">!</span>
             <div className="flex-1">
-              <p className="text-sm text-red-700 font-medium">生成失敗</p>
+              <p className="text-sm text-red-700 font-medium">{t('generateFailedTitle')}</p>
               <p className="text-xs text-red-600 mt-1">{error}</p>
             </div>
             <button
@@ -345,7 +346,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
             className="w-full p-3 bg-primary-50 border border-primary-200 rounded-lg text-primary-700 hover:bg-primary-100 transition-colors flex items-center justify-center gap-2"
           >
             <FileText className="w-4 h-4" />
-            查看生成結果
+            {t('viewResult')}
           </button>
         </div>
       )}
@@ -353,14 +354,14 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
       {/* 提示區 */}
       <div className="p-4 border-t border-gray-200">
         <p className="text-xs text-gray-500 text-center">
-          工作室輸出內容會儲存在這裡。
+          {t('tip')}
           <br />
-          加入來源後，點選即可新增語音摘要、研讀指南、心智圖等內容！
+          {t('tipSecond')}
         </p>
 
         <button className="mt-3 w-full flex items-center justify-center gap-2 p-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
           <FileText className="w-4 h-4" />
-          新增記事
+          {t('addNote')}
         </button>
       </div>
 
@@ -368,13 +369,13 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
       <Modal
         isOpen={isPodcastModalOpen}
         onClose={() => setIsPodcastModalOpen(false)}
-        title="生成 Podcast"
+        title={t('podcast.title')}
       >
         <div className="space-y-6">
           {/* 風格選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              對談風格
+              {t('podcast.style')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               {podcastStyles.map((style) => (
@@ -397,7 +398,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           {/* 時長選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              預估時長（分鐘）
+              {t('podcast.duration')}
             </label>
             <div className="flex gap-2">
               {[5, 10, 15, 20].map((duration) => (
@@ -410,7 +411,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {duration} 分
+                  {duration} {t('podcast.minutes')}
                 </button>
               ))}
             </div>
@@ -420,14 +421,14 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">
-                講者設定（1-4 人）
+                {t('podcast.speakerSettings')}
               </label>
               {podcastSpeakers.length < 4 && (
                 <button
                   onClick={addSpeaker}
                   className="text-sm text-primary-600 hover:text-primary-700"
                 >
-                  + 新增講者
+                  {t('podcast.addSpeaker')}
                 </button>
               )}
             </div>
@@ -439,7 +440,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                       type="text"
                       value={speaker.name}
                       onChange={(e) => updateSpeaker(index, 'name', e.target.value)}
-                      placeholder="講者名稱"
+                      placeholder={t('podcast.speakerNamePlaceholder')}
                       className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                     <select
@@ -447,9 +448,9 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                       onChange={(e) => updateSpeaker(index, 'role', e.target.value)}
                       className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                      <option value="host">主持人</option>
-                      <option value="guest">來賓</option>
-                      <option value="expert">專家</option>
+                      <option value="host">{t('podcast.speakerRoles.host')}</option>
+                      <option value="guest">{t('podcast.speakerRoles.guest')}</option>
+                      <option value="expert">{t('podcast.speakerRoles.expert')}</option>
                     </select>
                     {podcastSpeakers.length > 1 && (
                       <button
@@ -464,7 +465,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                     type="text"
                     value={speaker.personality || ''}
                     onChange={(e) => updateSpeaker(index, 'personality', e.target.value)}
-                    placeholder="個性描述（選填，如：專業、幽默）"
+                    placeholder={t('podcast.personalityPlaceholder')}
                     className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                   {withAudio && availableVoices.length > 0 && (
@@ -473,7 +474,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                       onChange={(e) => setSpeakerVoices({ ...speakerVoices, [speaker.name]: e.target.value })}
                       className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                      <option value="">選擇語音</option>
+                      <option value="">{t('podcast.selectVoice')}</option>
                       {availableVoices.map((voice) => (
                         <option key={voice.id} value={voice.id}>
                           {voice.name} ({voice.gender})
@@ -496,8 +497,8 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
               className="w-4 h-4 text-primary-600 rounded"
             />
             <label htmlFor="withAudio" className="flex-1">
-              <span className="text-sm font-medium text-gray-900">生成音訊</span>
-              <p className="text-xs text-gray-500">將腳本轉換為語音（需要 TTS 服務）</p>
+              <span className="text-sm font-medium text-gray-900">{t('podcast.generateAudio')}</span>
+              <p className="text-xs text-gray-500">{t('podcast.generateAudioDesc')}</p>
             </label>
             <Volume2 className="w-5 h-5 text-gray-400" />
           </div>
@@ -508,14 +509,14 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
               variant="secondary"
               onClick={() => setIsPodcastModalOpen(false)}
             >
-              取消
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={handleGeneratePodcast}
               loading={generatingType === 'podcast'}
             >
               <Radio className="w-4 h-4 mr-2" />
-              生成 Podcast
+              {t('podcast.generatePodcast')}
             </Button>
           </div>
         </div>
@@ -528,13 +529,13 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           setIsDifficultyModalOpen(false)
           setPendingType(null)
         }}
-        title={`生成${pendingType === 'flashcards' ? '學習卡' : '測驗'}`}
+        title={t('difficulty.title', { type: pendingType === 'flashcards' ? t('items.flashcards') : t('items.quiz') })}
       >
         <div className="space-y-6">
           {/* 數量選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              生成數量
+              {t('difficulty.count')}
             </label>
             <div className="flex gap-2">
               {[5, 10, 15, 20].map((count) => (
@@ -547,7 +548,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {count} {pendingType === 'flashcards' ? '張' : '題'}
+                  {count} {pendingType === 'flashcards' ? t('difficulty.cardsUnit') : t('difficulty.questionsUnit')}
                 </button>
               ))}
             </div>
@@ -556,7 +557,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           {/* 難度選擇 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              難度設定
+              {t('difficulty.setting')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               {difficultyOptions.map((option) => (
@@ -580,13 +581,13 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
               <Lightbulb className="w-3 h-3" />
-              Bloom 認知層次
+              {t('difficulty.bloomLevel')}
             </p>
             <p className="text-xs text-blue-600">
-              {selectedDifficulty === 'easy' && '記憶、理解：回憶定義、解釋概念'}
-              {selectedDifficulty === 'medium' && '應用、分析：實際應用、比較分析'}
-              {selectedDifficulty === 'hard' && '評估、創造：批判思考、問題解決'}
-              {selectedDifficulty === 'mixed' && '包含各層次問題，循序漸進'}
+              {selectedDifficulty === 'easy' && t('difficulty.bloomDescriptions.easy')}
+              {selectedDifficulty === 'medium' && t('difficulty.bloomDescriptions.medium')}
+              {selectedDifficulty === 'hard' && t('difficulty.bloomDescriptions.hard')}
+              {selectedDifficulty === 'mixed' && t('difficulty.bloomDescriptions.mixed')}
             </p>
           </div>
 
@@ -599,14 +600,14 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                 setPendingType(null)
               }}
             >
-              取消
+              {t('common:cancel')}
             </Button>
             <Button
               onClick={handleGenerateWithDifficulty}
               loading={generatingType === pendingType}
             >
               <Gauge className="w-4 h-4 mr-2" />
-              開始生成
+              {t('difficulty.startGenerate')}
             </Button>
           </div>
         </div>
@@ -616,7 +617,7 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
       <Modal
         isOpen={isResultModalOpen}
         onClose={() => setIsResultModalOpen(false)}
-        title={getResultTitle(result?.type || '')}
+        title={t(`resultTitles.${result?.type || 'default'}`)}
       >
         <div className="max-h-[70vh] overflow-y-auto">
           {/* Podcast 音訊播放器 */}
@@ -634,13 +635,13 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
                   )}
                 </button>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">Podcast 音訊</p>
-                  <p className="text-sm text-gray-500">點擊播放收聽</p>
+                  <p className="font-medium text-gray-900">{t('podcast.audioTitle')}</p>
+                  <p className="text-sm text-gray-500">{t('podcast.clickToPlay')}</p>
                 </div>
                 <button
                   onClick={handleDownloadAudio}
                   className="p-2 rounded-lg hover:bg-white/50 transition-colors"
-                  title="下載音訊"
+                  title={t('podcast.downloadAudio')}
                 >
                   <Download className="w-5 h-5 text-gray-600" />
                 </button>
@@ -652,35 +653,17 @@ export default function StudioPanel({ notebookId }: StudioPanelProps) {
 
           <div className="mt-4 pt-4 border-t flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setIsResultModalOpen(false)}>
-              關閉
+              {t('common:close')}
             </Button>
             <Button onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
-              匯出
+              {t('common:export')}
             </Button>
           </div>
         </div>
       </Modal>
     </div>
   )
-}
-
-// 獲取結果標題
-function getResultTitle(type: string): string {
-  const titles: Record<string, string> = {
-    summary: '摘要',
-    mindmap: '心智圖',
-    flowchart: '流程圖',
-    diagram: '架構圖',
-    flashcards: '學習卡',
-    quiz: '測驗',
-    report: '報告',
-    presentation: '簡報',
-    infographic: '資訊圖表',
-    datatable: '資料表',
-    podcast: 'Podcast',
-  }
-  return titles[type] || '生成結果'
 }
 
 // 展平嵌套數據的輔助函數
@@ -704,6 +687,8 @@ function flattenData(data: unknown): unknown {
 
 // 結果顯示組件
 function ResultDisplay({ type, data: rawData }: { type: string; data: unknown }) {
+  const { t } = useTranslation(['studio', 'common'])
+
   // 展平可能嵌套的數據
   const data = flattenData(rawData)
 
@@ -735,12 +720,14 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
         {/* 元數據摘要 */}
         {metadata && (
           <div className="flex items-center gap-4 text-xs text-gray-500 pb-3 border-b">
-            <span>共 {cards.length} 張卡片</span>
+            <span>{t('flashcardResult.cardCount', { count: cards.length })}</span>
             {metadata.difficulty_distribution && (
               <span>
-                難度分布：簡單 {metadata.difficulty_distribution.easy || 0} /
-                中等 {metadata.difficulty_distribution.medium || 0} /
-                困難 {metadata.difficulty_distribution.hard || 0}
+                {t('flashcardResult.difficultyDistribution', {
+                  easy: metadata.difficulty_distribution.easy || 0,
+                  medium: metadata.difficulty_distribution.medium || 0,
+                  hard: metadata.difficulty_distribution.hard || 0,
+                })}
               </span>
             )}
           </div>
@@ -753,7 +740,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             <div className="flex items-center gap-2 mb-2">
               {card.difficulty && (
                 <span className={`text-xs px-2 py-0.5 rounded ${difficultyColors[card.difficulty] || 'bg-gray-100 text-gray-600'}`}>
-                  {card.difficulty === 'easy' ? '簡單' : card.difficulty === 'medium' ? '中等' : card.difficulty === 'hard' ? '困難' : card.difficulty}
+                  {t(`flashcardResult.difficultyLabels.${card.difficulty}`, card.difficulty as string)}
                 </span>
               )}
               {card.category && (
@@ -775,7 +762,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {card.hint && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3" />
-                提示：{card.hint}
+                {t('flashcardResult.hint', { hint: card.hint })}
               </p>
             )}
 
@@ -803,15 +790,6 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
       hard: 'bg-red-100 text-red-700',
     }
 
-    // 題型標籤映射
-    const typeLabels: Record<string, string> = {
-      multiple_choice: '選擇題',
-      true_false: '判斷題',
-      fill_blank: '填空題',
-      matching: '配對題',
-      short_answer: '簡答題',
-    }
-
     return (
       <div className="space-y-4">
         {/* 標題和元數據 */}
@@ -820,10 +798,10 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {quizTitle && <h4 className="font-medium text-gray-900">{quizTitle}</h4>}
             {metadata && (
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 mt-2">
-                <span>共 {questions.length} 題</span>
-                {metadata.total_points && <span>總分：{metadata.total_points} 分</span>}
-                {metadata.time_limit_minutes && <span>建議時間：{metadata.time_limit_minutes} 分鐘</span>}
-                {metadata.passing_score && <span>及格分數：{metadata.passing_score} 分</span>}
+                <span>{t('quizResult.questionCount', { count: questions.length })}</span>
+                {metadata.total_points && <span>{t('quizResult.totalPoints', { points: metadata.total_points })}</span>}
+                {metadata.time_limit_minutes && <span>{t('quizResult.timeLimit', { minutes: metadata.time_limit_minutes })}</span>}
+                {metadata.passing_score && <span>{t('quizResult.passingScore', { score: metadata.passing_score })}</span>}
               </div>
             )}
           </div>
@@ -835,15 +813,15 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {/* 題目標籤 */}
             <div className="flex items-center gap-2">
               <span className="text-xs px-2 py-0.5 rounded bg-cyan-100 text-cyan-700">
-                {typeLabels[q.type] || q.type}
+                {t(`quizResult.typeLabels.${q.type}`, q.type as string)}
               </span>
               {q.difficulty && (
                 <span className={`text-xs px-2 py-0.5 rounded ${difficultyColors[q.difficulty] || 'bg-gray-100'}`}>
-                  {q.difficulty === 'easy' ? '簡單' : q.difficulty === 'medium' ? '中等' : '困難'}
+                  {t(`quizResult.difficultyLabels.${q.difficulty}`, q.difficulty as string)}
                 </span>
               )}
               {q.points && (
-                <span className="text-xs text-gray-400">{q.points} 分</span>
+                <span className="text-xs text-gray-400">{t('quizResult.points', { points: q.points })}</span>
               )}
             </div>
 
@@ -871,16 +849,16 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {q.type === 'true_false' && (
               <p className="text-sm text-green-700 font-medium flex items-center gap-2 ml-4">
                 <CheckCircle2 className="w-4 h-4" />
-                答案：{q.correct === true ? '正確' : '錯誤'}
+                {t('quizResult.answer')}{q.correct === true ? t('quizResult.correct') : t('quizResult.incorrect')}
               </p>
             )}
 
             {/* 填空題答案 */}
             {q.type === 'fill_blank' && (
               <p className="text-sm text-green-700 font-medium ml-4">
-                答案：{String(q.correct)}
+                {t('quizResult.answer')}{String(q.correct)}
                 {q.alternatives && q.alternatives.length > 0 && (
-                  <span className="text-gray-500 font-normal">（也接受：{q.alternatives.join('、')}）</span>
+                  <span className="text-gray-500 font-normal">{t('quizResult.alsoAccept', { alternatives: q.alternatives.join('、') })}</span>
                 )}
               </p>
             )}
@@ -906,12 +884,12 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
               <div className="ml-4 space-y-2">
                 {q.sample_answer && (
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">參考答案：</span>{q.sample_answer}
+                    <span className="font-medium">{t('quizResult.referenceAnswer')}</span>{q.sample_answer}
                   </p>
                 )}
                 {q.key_points && q.key_points.length > 0 && (
                   <div className="text-sm text-gray-500">
-                    <span className="font-medium">評分要點：</span>
+                    <span className="font-medium">{t('quizResult.gradingPoints')}</span>
                     <ul className="list-disc list-inside mt-1">
                       {q.key_points.map((point, i) => (
                         <li key={i}>{point}</li>
@@ -926,7 +904,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {q.hint && (
               <p className="text-xs text-amber-600 flex items-center gap-1 ml-4">
                 <Lightbulb className="w-3 h-3" />
-                提示：{q.hint}
+                {t('quizResult.hint', { hint: q.hint })}
               </p>
             )}
 
@@ -934,7 +912,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
             {q.explanation && (
               <div className="pt-2 border-t border-gray-200 mt-2">
                 <p className="text-xs text-gray-500">
-                  <span className="font-medium">解釋：</span>{q.explanation}
+                  <span className="font-medium">{t('quizResult.explanation')}</span>{q.explanation}
                 </p>
               </div>
             )}
@@ -946,7 +924,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
 
   if (type === 'mindmap') {
     const mindmap = (data as { data?: Record<string, unknown> }).data || data
-    if (!mindmap) return <p className="text-gray-500">無法顯示心智圖</p>
+    if (!mindmap) return <p className="text-gray-500">{t('mindmapResult.renderFailed')}</p>
 
     return <MindmapRenderer data={mindmap as Parameters<typeof MindmapRenderer>[0]['data']} />
   }
@@ -955,7 +933,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
   if (type === 'flowchart') {
     const diagramData = (data as { data?: DiagramData }).data || data as DiagramData
     if (!diagramData || !diagramData.xml) {
-      return <p className="text-gray-500">無法顯示流程圖</p>
+      return <p className="text-gray-500">{t('flowchartResult.renderFailed')}</p>
     }
     return <DiagramRenderer data={{ ...diagramData, type: 'flowchart' }} />
   }
@@ -964,7 +942,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
   if (type === 'diagram') {
     const diagramData = (data as { data?: DiagramData }).data || data as DiagramData
     if (!diagramData || !diagramData.xml) {
-      return <p className="text-gray-500">無法顯示架構圖</p>
+      return <p className="text-gray-500">{t('diagramResult.renderFailed')}</p>
     }
     return <DiagramRenderer data={{ ...diagramData, type: 'diagram' }} />
   }
@@ -1032,7 +1010,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
     const slides = presData.slides || []
 
     if (slides.length === 0) {
-      return <p className="text-gray-500">無法顯示簡報</p>
+      return <p className="text-gray-500">{t('presentationResult.cannotDisplay')}</p>
     }
 
     return (
@@ -1067,7 +1045,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
               )}
             </div>
             {slide.speaker_notes && (
-              <p className="mt-2 text-xs text-gray-400 italic">備註: {slide.speaker_notes}</p>
+              <p className="mt-2 text-xs text-gray-400 italic">{t('presentationResult.notes', { notes: slide.speaker_notes })}</p>
             )}
           </div>
         ))}
@@ -1106,7 +1084,7 @@ function ResultDisplay({ type, data: rawData }: { type: string; data: unknown })
         {oldFormatData.image && (
           <img
             src={oldFormatData.image.startsWith('data:') ? oldFormatData.image : `data:image/png;base64,${oldFormatData.image}`}
-            alt={oldFormatData.title || '資訊圖表'}
+            alt={oldFormatData.title || t('chartResult.infographicAlt')}
             className="w-full rounded-lg"
           />
         )}
