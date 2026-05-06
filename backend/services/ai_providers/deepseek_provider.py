@@ -11,12 +11,17 @@ logger = logging.getLogger(__name__)
 
 
 class DeepSeekProvider(BaseTextProvider):
-    """DeepSeek Provider - 支援推理模型 (R1)"""
+    """DeepSeek Provider - 支援推理模型 (R1/V4-Pro)"""
+
+    # 推理模型集合
+    REASONING_MODELS = {"deepseek-reasoner", "deepseek-v4-pro"}
 
     # 可用模型
     AVAILABLE_MODELS = [
         "deepseek-chat",        # DeepSeek-V3 對話模型
         "deepseek-reasoner",    # DeepSeek-R1 推理模型
+        "deepseek-v4-flash",    # DeepSeek-V4 快速對話模型
+        "deepseek-v4-pro",      # DeepSeek-V4 推理模型
     ]
 
     API_BASE = "https://api.deepseek.com"
@@ -31,6 +36,10 @@ class DeepSeekProvider(BaseTextProvider):
         self.model = model
         self.max_tokens = max_tokens
         self._client = None
+
+    def _is_reasoning_model(self) -> bool:
+        """判斷當前模型是否為推理模型"""
+        return self.model in self.REASONING_MODELS
 
     @property
     def client(self):
@@ -81,7 +90,7 @@ class DeepSeekProvider(BaseTextProvider):
         prompt: str,
         system_prompt: Optional[str] = None
     ) -> Generator[str, None, None]:
-        """串流生成文字"""
+        """串流生成文字（推理模型會先輸出思考過程，再輸出最終內容）"""
         try:
             messages = []
 
@@ -98,8 +107,15 @@ class DeepSeekProvider(BaseTextProvider):
             )
 
             for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+                delta = chunk.choices[0].delta
+
+                # 推理模型：先輸出思考過程 (reasoning_content)
+                if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
+                    yield delta.reasoning_content
+
+                # 最終回答內容 (content)
+                if delta.content:
+                    yield delta.content
 
         except Exception as e:
             logger.error(f"DeepSeek 串流生成失敗: {e}")
@@ -136,9 +152,10 @@ class DeepSeekProvider(BaseTextProvider):
             {"content": "最終答案", "reasoning": "思考過程"}
         """
         try:
-            # 使用推理模型
+            # 如果當前已是推理模型則直接使用，否則切換到 deepseek-reasoner
             original_model = self.model
-            self.model = "deepseek-reasoner"
+            if not self._is_reasoning_model():
+                self.model = "deepseek-reasoner"
 
             messages = []
             if system_prompt:
