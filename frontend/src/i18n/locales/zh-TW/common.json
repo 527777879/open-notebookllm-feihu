@@ -1,0 +1,36 @@
+{
+  "loading": "載入中...",
+  "cancel": "取消",
+  "save": "儲存",
+  "create": "建立",
+  "delete": "刪除",
+  "edit": "編輯",
+  "close": "關閉",
+  "export": "匯出",
+  "copy": "複製",
+  "copied": "已複製",
+  "add": "新增",
+  "confirm": "確定",
+  "brand": "NoteBookLLM",
+  "splashAlt": "亮言 NoteBookLLM",
+  "createNotebook": "建立筆記本",
+  "dateLocale": "zh-TW",
+  "language": {
+    "label": "語言",
+    "zh-TW": "繁體中文",
+    "zh-CN": "简体中文"
+  },
+  "error": {
+    "loadNotebooks": "無法載入筆記本列表",
+    "createNotebook": "建立筆記本失敗",
+    "loadNotebook": "無法載入筆記本",
+    "updateNotebook": "更新筆記本失敗",
+    "deleteNotebook": "刪除筆記本失敗",
+    "loadFolders": "載入資料夾失敗",
+    "createFolder": "建立資料夾失敗",
+    "updateFolder": "更新資料夾失敗",
+    "deleteFolder": "刪除資料夾失敗",
+    "moveNotebook": "移動筆記本失敗",
+    "reorderFailed": "重新排序失敗"
+  }
+}

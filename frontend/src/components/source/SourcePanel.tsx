@@ -22,6 +22,7 @@ import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import type { SourceType } from '@/types'
 import { isAudioFile } from '@/api/sources'
+import WebSearchPanel from './WebSearchPanel'
 
 interface SourcePanelProps {
   notebookId: string
@@ -84,6 +85,7 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
   } = useSourceStore()
 
   const [reembeddingId, setReembeddingId] = useState<string | null>(null)
+  const [view, setView] = useState<'sources' | 'websearch'>('sources')
 
   const filteredSources = getFilteredSources()
   const allSelected = filteredSources.length > 0 && selectedIds.length === filteredSources.length
@@ -160,27 +162,64 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-gray-900">{t('title')}</h2>
-          <Button
-            size="sm"
-            onClick={() => setIsAddModalOpen(true)}
+          {view === 'sources' && (
+            <Button
+              size="sm"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              {t('addSource')}
+            </Button>
+          )}
+        </div>
+
+        {/* View toggle tabs */}
+        <div className="flex gap-1 mb-3">
+          <button
+            onClick={() => setView('sources')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              view === 'sources'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
           >
-            <Plus className="w-4 h-4 mr-1" />
-            {t('addSource')}
-          </Button>
+            {t('tabs.mySources')}
+          </button>
+          <button
+            onClick={() => setView('websearch')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              view === 'websearch'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {t('tabs.webSearch')}
+          </button>
         </div>
 
         {/* 搜尋 */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder={t('searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
+        {view === 'sources' && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+        )}
       </div>
+
+      {/* Web Search view */}
+      {view === 'websearch' && (
+        <WebSearchPanel notebookId={notebookId} onBack={() => setView('sources')} />
+      )}
+
+      {/* Sources view */}
+      {view === 'sources' && (
+        <>
 
       {/* 類型篩選 */}
       <div className="px-4 py-2 border-b border-gray-200 flex flex-wrap gap-1.5">
@@ -461,6 +500,8 @@ export default function SourcePanel({ notebookId }: SourcePanelProps) {
           )}
         </div>
       </Modal>
+        </>
+      )}
     </div>
   )
 }

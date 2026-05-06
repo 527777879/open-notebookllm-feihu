@@ -1,0 +1,20 @@
+{
+  "title": "我的筆記本",
+  "folderCount": "{{count}} 個資料夾，{{total}} 個筆記本",
+  "addFolder": "新增資料夾",
+  "addNotebook": "新增筆記本",
+  "noNotebooks": "還沒有筆記本",
+  "noNotebooksDesc": "建立第一個筆記本，開始整理你的知識",
+  "createNotebook": "建立筆記本",
+  "uncategorized": "未分類",
+  "deleteNotebookConfirm": "確定要刪除這個筆記本嗎？",
+  "deleteFolderConfirm": "確定要刪除資料夾「{{name}}」嗎？資料夾內的筆記本會移至未分類。",
+  "createNotebookModal": "建立新筆記本",
+  "notebookNamePlaceholder": "輸入筆記本名稱",
+  "createFolderModal": "建立新資料夾",
+  "editFolderModal": "編輯資料夾",
+  "chooseIcon": "選擇圖示",
+  "folderNamePlaceholder": "輸入資料夾名稱",
+  "dragNotebookHere": "拖曳筆記本到這裡",
+  "sourceCount": "{{count}} 個來源"
+}

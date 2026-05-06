@@ -297,6 +297,21 @@ export interface ApiResponse<T> {
   message?: string
 }
 
+// 網路搜尋結果 (Tavily)
+export interface WebSearchResult {
+  title: string
+  url: string
+  content: string
+  raw_content?: string
+  score: number
+}
+
+export interface WebSearchResponse {
+  query: string
+  results: WebSearchResult[]
+  answer?: string
+}
+
 // AI 提供商類型
 export type AIProvider = 'gemini' | 'openai' | 'anthropic' | 'ollama' | 'groq' | 'deepseek'
 

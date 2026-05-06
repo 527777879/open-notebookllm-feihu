@@ -1,0 +1,86 @@
+{
+  "title": "來源",
+  "addSource": "新增來源",
+  "searchPlaceholder": "搜尋來源...",
+  "selectAll": "選取所有來源",
+  "noSources": "沒有來源",
+  "noSourcesDesc": "點擊「新增來源」開始",
+  "addSourceModal": "新增來源",
+  "deleteConfirm": "確定要刪除這個來源嗎？",
+  "unnamedText": "未命名文字",
+  "typeLabels": {
+    "all": "全部",
+    "pdf": "PDFs",
+    "text": "Text",
+    "web": "Web",
+    "youtube": "YouTube",
+    "gdocs": "GDocs",
+    "audio": "音檔"
+  },
+  "addTypes": {
+    "file": "文件",
+    "audio": "音檔",
+    "url": "網址",
+    "youtube": "YouTube",
+    "text": "文字"
+  },
+  "fileUpload": "點擊選擇文件",
+  "fileSupport": "支援 PDF、TXT、DOCX、XLSX、CSV",
+  "audioUpload": "點擊選擇音檔",
+  "audioSupport": "支援 MP3、WAV、M4A、OGG 等格式",
+  "sttService": "語音轉文字服務",
+  "sttProviders": {
+    "openai": {
+      "name": "OpenAI Whisper",
+      "description": "高品質，支援多語言"
+    },
+    "groq": {
+      "name": "Groq Whisper",
+      "description": "超高速，免費額度"
+    },
+    "local": {
+      "name": "本地 Whisper",
+      "description": "離線使用，需安裝"
+    }
+  },
+  "language": "語言",
+  "autoDetect": "自動偵測",
+  "transcribing": "正在轉錄音檔，請稍候...",
+  "titlePlaceholder": "標題（選填）",
+  "textPlaceholder": "貼上或輸入文字內容...",
+  "sourceTypeLabels": {
+    "pdf": "PDF",
+    "text": "文字",
+    "web": "網頁",
+    "youtube": "YouTube",
+    "gdocs": "文件",
+    "audio": "音檔"
+  },
+  "error": {
+    "loadSources": "無法載入來源列表",
+    "uploadFile": "上傳文件失敗",
+    "addUrl": "新增網址來源失敗",
+    "addYoutube": "新增 YouTube 來源失敗",
+    "addText": "新增文字來源失敗",
+    "deleteSource": "刪除來源失敗",
+    "reembedSource": "重建嵌入失敗"
+  },
+  "reembed": "重新嵌入",
+  "tabs": {
+    "mySources": "我的來源",
+    "webSearch": "網路搜尋"
+  },
+  "webSearch": {
+    "title": "網路搜尋",
+    "placeholder": "輸入搜尋關鍵字...",
+    "search": "搜尋",
+    "aiAnswer": "AI 摘要",
+    "selectAll": "全選",
+    "saveSelected": "儲存選取",
+    "emptyHint": "輸入關鍵字搜尋網際網路資源",
+    "error": "搜尋失敗，請稍後重試",
+    "saveError": "儲存失敗，請稍後重試",
+    "saveSuccess": "已儲存 {{saved}} 筆來源",
+    "saveFailed": "{{failed}} 筆儲存失敗"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "title": "我的笔记本",
+  "folderCount": "{{count}} 个文件夹，{{total}} 个笔记本",
+  "addFolder": "新建文件夹",
+  "addNotebook": "新建笔记本",
+  "noNotebooks": "还没有笔记本",
+  "noNotebooksDesc": "创建第一个笔记本，开始整理你的知识",
+  "createNotebook": "创建笔记本",
+  "uncategorized": "未分类",
+  "deleteNotebookConfirm": "确定要删除这个笔记本吗？",
+  "deleteFolderConfirm": "确定要删除文件夹「{{name}}」吗？文件夹内的笔记本会移至未分类。",
+  "createNotebookModal": "创建新笔记本",
+  "notebookNamePlaceholder": "输入笔记本名称",
+  "createFolderModal": "新建文件夹",
+  "editFolderModal": "编辑文件夹",
+  "chooseIcon": "选择图标",
+  "folderNamePlaceholder": "输入文件夹名称",
+  "dragNotebookHere": "拖拽笔记本到这里",
+  "sourceCount": "{{count}} 个来源"
+}

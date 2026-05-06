@@ -9,11 +9,13 @@ export const getMessages = (notebookId: string) =>
 export const sendMessage = (
   notebookId: string,
   message: string,
-  sourceIds?: string[]
+  sourceIds?: string[],
+  locale?: string
 ) =>
   apiClient.post<ApiResponse<ChatMessage>>(`/api/notebooks/${notebookId}/chats`, {
     message,
     source_ids: sourceIds,
+    locale,
   })
 
 // 串流發送訊息
@@ -21,6 +23,7 @@ export const streamMessage = async (
   notebookId: string,
   message: string,
   sourceIds: string[] | undefined,
+  locale: string,
   onChunk: (chunk: string) => void,
   onSources: (refs: unknown[]) => void,
   onDone: (messageId: string) => void,
@@ -30,7 +33,7 @@ export const streamMessage = async (
     const response = await fetch(`/api/notebooks/${notebookId}/chats/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, source_ids: sourceIds }),
+      body: JSON.stringify({ message, source_ids: sourceIds, locale }),
     })
 
     if (!response.ok) {

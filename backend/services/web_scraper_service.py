@@ -51,6 +51,8 @@ class WebScraperService:
         """
         擷取網頁內容
 
+        優先順序：1. Playwright 無頭瀏覽器 → 2. 簡單 HTTP 請求 → 3. Jina Reader
+
         Args:
             url: 網頁 URL
             timeout: 請求超時時間
@@ -62,6 +64,37 @@ class WebScraperService:
         if not self._is_valid_url(url):
             return None, None, "無效的 URL"
 
+        # 1. 優先使用 Playwright 無頭瀏覽器（模擬真實用戶，解決反爬）
+        try:
+            from .browser_scraper_service import get_browser_scraper
+            browser_scraper = get_browser_scraper()
+            content, metadata, error = browser_scraper.scrape_url(url)
+            if content:
+                logger.info(f"Playwright 爬取成功: {url} ({len(content)} 字)")
+                return content, metadata, None
+            logger.warning(f"Playwright 爬取失敗: {url} - {error}")
+        except ImportError:
+            logger.warning("Playwright 未安裝，跳過瀏覽器爬取")
+        except Exception as e:
+            logger.warning(f"Playwright 爬取異常: {url} - {e}")
+
+        # 2. 簡單 HTTP 請求
+        content, metadata, error = self._scrape_direct(url, timeout)
+        if content:
+            return content, metadata, None
+
+        # 3. Jina Reader 兜底
+        if error:
+            logger.info(f"HTTP 抓取失敗，嘗試 Jina Reader: {url}")
+            jina_content, jina_error = self._scrape_via_jina(url, timeout)
+            if jina_content:
+                return jina_content, metadata or {'url': url, 'domain': urlparse(url).netloc}, None
+            logger.warning(f"Jina Reader 也失敗: {jina_error}")
+
+        return None, metadata, error
+
+    def _scrape_direct(self, url: str, timeout: int) -> Tuple[Optional[str], Optional[Dict[str, Any]], Optional[str]]:
+        """直接抓取網頁內容"""
         try:
             # 發送請求
             response = self.session.get(url, timeout=timeout, allow_redirects=True)
@@ -94,6 +127,24 @@ class WebScraperService:
         except Exception as e:
             logger.error(f"網頁擷取失敗: {e}")
             return None, None, f"擷取失敗: {str(e)}"
+
+    def _scrape_via_jina(self, url: str, timeout: int = 30) -> Tuple[Optional[str], Optional[str]]:
+        """通過 Jina Reader API 抓取網頁內容（繞過反爬）"""
+        try:
+            jina_url = f"https://r.jina.ai/{url}"
+            headers = {
+                'Accept': 'text/plain',
+            }
+            response = requests.get(jina_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+
+            content = response.text.strip()
+            if not content or len(content) < 100:
+                return None, "Jina Reader 返回內容不足"
+
+            return content, None
+        except Exception as e:
+            return None, f"Jina Reader 請求失敗: {str(e)}"
 
     def _is_valid_url(self, url: str) -> bool:
         """驗證 URL 格式"""

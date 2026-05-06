@@ -1,0 +1,96 @@
+{
+  "title": "AI 设置",
+  "loadSettingsFailed": "加载设置失败",
+  "loadModelsFailed": "加载模型列表失败",
+  "enterApiKey": "请输入 API Key",
+  "apiConnected": "API 连接成功！",
+  "connectionFailed": "连接失败",
+  "connectionTestFailed": "连接测试失败",
+  "settingsSaved": "设置已保存！",
+  "saveFailed": "保存失败",
+  "saveSettingsFailed": "保存设置失败",
+  "serviceReady": "AI 服务就绪",
+  "currentProvider": "当前使用: ",
+  "notConfigured": "尚未设置",
+  "notConfiguredDesc": "请选择 AI 提供商并设置 API Key",
+  "selectProvider": "选择 AI 提供商",
+  "available": "可用",
+  "notConfiguredLabel": "未设置",
+  "embedding": "嵌入",
+  "image": "图片",
+  "apiKey": "API Key",
+  "apiKeyPlaceholder": "输入 {{name}} API Key",
+  "getApiKey": "点击获取 API Key",
+  "ollamaNoKey": "Ollama 是本地模型，不需要 API Key。\n请确保已安装并启动 Ollama 服务。",
+  "downloadOllama": "下载 Ollama",
+  "model": "模型",
+  "useDefaultModel": "使用默认模型",
+  "testConnection": "测试连接",
+  "saveSettings": "保存设置",
+  "providerFeatures": "各提供商特色",
+  "providerDescriptions": {
+    "gemini": "Gemini - Google 多模态模型，支持图片生成",
+    "openai": "OpenAI - GPT-4.1/5.1 + DALL-E 3，完整功能",
+    "anthropic": "Anthropic - Claude 系列，超长上下文",
+    "ollama": "Ollama - 本地模型，免费无限使用",
+    "groq": "Groq - 超高速推理，适合即时应用",
+    "deepseek": "DeepSeek - R1 推理模型，深度思考能力"
+  },
+  "providerSettings": "{{name}} 设置",
+  "providers": {
+    "gemini": {
+      "name": "Google Gemini",
+      "description": "支持多模态、嵌入、图片生成",
+      "features": {
+        "textGeneration": "文字生成",
+        "embedding": "向量嵌入",
+        "imageGeneration": "图片生成"
+      }
+    },
+    "openai": {
+      "name": "OpenAI",
+      "description": "GPT-4.1/5.1 + DALL-E 3",
+      "features": {
+        "textGeneration": "文字生成",
+        "embedding": "向量嵌入",
+        "imageGeneration": "图片生成",
+        "ttsStt": "TTS/STT"
+      }
+    },
+    "anthropic": {
+      "name": "Anthropic Claude",
+      "description": "Claude Opus/Sonnet 系列",
+      "features": {
+        "textGeneration": "文字生成",
+        "longContext": "长上下文"
+      }
+    },
+    "ollama": {
+      "name": "Ollama (本地)",
+      "description": "本地模型，免费无限使用",
+      "features": {
+        "textGeneration": "文字生成",
+        "embedding": "向量嵌入",
+        "offline": "离线使用"
+      }
+    },
+    "groq": {
+      "name": "Groq (高速)",
+      "description": "超高速推理，Llama 3.3 70B",
+      "features": {
+        "textGeneration": "文字生成",
+        "fastInference": "高速推理",
+        "stt": "STT"
+      }
+    },
+    "deepseek": {
+      "name": "DeepSeek (推理)",
+      "description": "支持 DeepSeek-R1 推理模型",
+      "features": {
+        "textGeneration": "文字生成",
+        "reasoning": "推理模型",
+        "chainOfThought": "Chain-of-Thought"
+      }
+    }
+  }
+}

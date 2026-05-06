@@ -45,10 +45,19 @@ class Config:
     OPENAI_EMBEDDING_MODEL = os.getenv('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small')
     OPENAI_IMAGE_MODEL = os.getenv('OPENAI_IMAGE_MODEL', 'dall-e-3')
 
+    # 獨立 Embedding 配置（用於 DeepSeek/Groq/Anthropic 等不支援 embedding 的提供商）
+    # 支援任何 OpenAI 相容的 embedding API（如 SiliconFlow、Jina 等）
+    EMBEDDING_API_KEY = os.getenv('EMBEDDING_API_KEY', '')
+    EMBEDDING_API_BASE = os.getenv('EMBEDDING_API_BASE', '')  # e.g. https://api.siliconflow.cn/v1
+    EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', '')  # e.g. BAAI/bge-large-zh-v1.5
+
     # RAG 配置
-    CHUNK_SIZE = int(os.getenv('CHUNK_SIZE', 1000))
-    CHUNK_OVERLAP = int(os.getenv('CHUNK_OVERLAP', 200))
+    CHUNK_SIZE = int(os.getenv('CHUNK_SIZE', 400))
+    CHUNK_OVERLAP = int(os.getenv('CHUNK_OVERLAP', 80))
     TOP_K_RESULTS = int(os.getenv('TOP_K_RESULTS', 5))
+
+    # Tavily Web Search 配置
+    TAVILY_API_KEY = os.getenv('TAVILY_API_KEY', '')
 
     # 日誌配置
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

@@ -1,0 +1,183 @@
+{
+  "title": "工作室",
+  "export": "匯出",
+  "noResultExport": "尚無結果可匯出",
+  "exportPrefix": "工作室_",
+  "generateFailed": "生成失敗，請稍後再試",
+  "generateFailedNetwork": "生成失敗，請檢查網路連線或後端服務",
+  "generateFailedTitle": "生成失敗",
+  "viewResult": "查看生成結果",
+  "tip": "工作室輸出內容會儲存在這裡。",
+  "tipSecond": "加入來源後，點選即可新增語音摘要、研讀指南、心智圖等內容！",
+  "addNote": "新增記事",
+  "items": {
+    "audioSummary": "語音摘要",
+    "videoSummary": "影片摘要",
+    "mindmap": "心智圖",
+    "flowchart": "流程圖",
+    "diagram": "架構圖",
+    "report": "報告",
+    "flashcards": "學習卡",
+    "quiz": "測驗",
+    "infographic": "資訊圖表",
+    "presentation": "簡報",
+    "datatable": "資料表",
+    "podcast": "Podcast"
+  },
+  "podcast": {
+    "title": "生成 Podcast",
+    "style": "對談風格",
+    "styles": {
+      "conversational": { "name": "輕鬆對談", "description": "自然友善的談話風格" },
+      "educational": { "name": "教育講解", "description": "清晰易懂的教學模式" },
+      "debate": { "name": "辯論討論", "description": "多角度觀點交流" },
+      "interview": { "name": "專訪形式", "description": "訪談問答模式" }
+    },
+    "duration": "預估時長（分鐘）",
+    "minutes": "分",
+    "speakerSettings": "講者設定（1-4 人）",
+    "addSpeaker": "+ 新增講者",
+    "speakerPrefix": "講者 ",
+    "speakerNamePlaceholder": "講者名稱",
+    "speakerRoles": {
+      "host": "主持人",
+      "guest": "來賓",
+      "expert": "專家"
+    },
+    "personalityPlaceholder": "個性描述（選填，如：專業、幽默）",
+    "selectVoice": "選擇語音",
+    "generateAudio": "生成音訊",
+    "generateAudioDesc": "將腳本轉換為語音（需要 TTS 服務）",
+    "generatePodcast": "生成 Podcast",
+    "generateFailed": "Podcast 生成失敗",
+    "generateFailedNetwork": "Podcast 生成失敗，請檢查網路連線或後端服務",
+    "audioTitle": "Podcast 音訊",
+    "clickToPlay": "點擊播放收聽",
+    "downloadAudio": "下載音訊",
+    "defaultHost": { "name": "主持人", "personality": "專業、親切" },
+    "defaultGuest": { "name": "來賓", "personality": "博學、風趣" }
+  },
+  "difficulty": {
+    "title": "生成{{type}}",
+    "count": "生成數量",
+    "cardsUnit": "張",
+    "questionsUnit": "題",
+    "setting": "難度設定",
+    "bloomLevel": "Bloom 認知層次",
+    "options": {
+      "easy": { "name": "簡單", "description": "基礎定義和事實記憶" },
+      "medium": { "name": "中等", "description": "概念應用和比較分析" },
+      "hard": { "name": "困難", "description": "綜合評估和問題解決" },
+      "mixed": { "name": "混合", "description": "包含各難度題目" }
+    },
+    "bloomDescriptions": {
+      "easy": "記憶、理解：回憶定義、解釋概念",
+      "medium": "應用、分析：實際應用、比較分析",
+      "hard": "評估、創造：批判思考、問題解決",
+      "mixed": "包含各層次問題，循序漸進"
+    },
+    "startGenerate": "開始生成"
+  },
+  "resultTitles": {
+    "summary": "摘要",
+    "mindmap": "心智圖",
+    "flowchart": "流程圖",
+    "diagram": "架構圖",
+    "flashcards": "學習卡",
+    "quiz": "測驗",
+    "report": "報告",
+    "presentation": "簡報",
+    "infographic": "資訊圖表",
+    "datatable": "資料表",
+    "podcast": "Podcast",
+    "default": "生成結果"
+  },
+  "flashcardResult": {
+    "cardCount": "共 {{count}} 張卡片",
+    "difficultyDistribution": "難度分布：簡單 {{easy}} / 中等 {{medium}} / 困難 {{hard}}",
+    "hint": "提示：{{hint}}",
+    "difficultyLabels": {
+      "easy": "簡單",
+      "medium": "中等",
+      "hard": "困難"
+    }
+  },
+  "quizResult": {
+    "questionCount": "共 {{count}} 題",
+    "totalPoints": "總分：{{points}} 分",
+    "timeLimit": "建議時間：{{minutes}} 分鐘",
+    "passingScore": "及格分數：{{score}} 分",
+    "points": "分",
+    "answer": "答案：",
+    "correct": "正確",
+    "incorrect": "錯誤",
+    "alsoAccept": "（也接受：{{alternatives}}）",
+    "referenceAnswer": "參考答案：",
+    "gradingPoints": "評分要點：",
+    "hint": "提示：{{hint}}",
+    "explanation": "解釋：",
+    "typeLabels": {
+      "multiple_choice": "選擇題",
+      "true_false": "判斷題",
+      "fill_blank": "填空題",
+      "matching": "配對題",
+      "short_answer": "簡答題"
+    },
+    "difficultyLabels": {
+      "easy": "簡單",
+      "medium": "中等",
+      "hard": "困難"
+    }
+  },
+  "mindmapResult": {
+    "renderFailed": "心智圖渲染失敗，顯示文字版本",
+    "centralTheme": "中心主題",
+    "zoomOut": "縮小",
+    "zoomIn": "放大",
+    "resetZoom": "重置縮放",
+    "copyMermaid": "複製 Mermaid 代碼",
+    "downloadSvg": "下載 SVG",
+    "nodeCount": "共 {{count}} 個節點",
+    "maxDepth": "最大深度 {{depth}} 層"
+  },
+  "diagramResult": {
+    "flowchart": "流程圖",
+    "architecture": "架構圖",
+    "sequence": "時序圖",
+    "class": "類別圖",
+    "er": "ER 圖",
+    "network": "網路圖",
+    "auto": "系統圖",
+    "default": "架構圖",
+    "cannotDisplay": "無法顯示圖表",
+    "missingXml": "缺少 XML 資料",
+    "viewMode": "檢視模式",
+    "editMode": "編輯模式",
+    "view": "檢視",
+    "edit": "編輯",
+    "copyXml": "複製 XML",
+    "downloadSvg": "下載 SVG",
+    "exitFullscreen": "退出全螢幕",
+    "fullscreen": "全螢幕",
+    "elements": "圖表元素",
+    "moreElements": "+{{count}} 個元素"
+  },
+  "chartResult": {
+    "keyInsights": "關鍵洞察",
+    "cannotDisplay": "無法顯示圖表資料",
+    "dataSource": "資料來源：{{source}}",
+    "infographicAlt": "資訊圖表",
+    "keyFindings": "關鍵發現",
+    "recommendations": "建議行動",
+    "chartCount": "共 {{count}} 個圖表",
+    "chartTypes": "類型：{{types}}",
+    "dataPoints": "數據點：{{count}}"
+  },
+  "presentationResult": {
+    "cannotDisplay": "無法顯示簡報",
+    "notes": "備註: {{notes}}"
+  },
+  "loadVoicesFailed": "載入語音列表失敗:",
+  "generateFailedLog": "生成失敗:",
+  "generatePodcastFailedLog": "生成 Podcast 失敗:"
+}

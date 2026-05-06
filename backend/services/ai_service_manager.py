@@ -210,12 +210,34 @@ class AIServiceManager:
         except Exception as e:
             logger.error(f"DeepSeek Provider 初始化失敗: {e}")
 
+    @staticmethod
+    def _is_valid_api_key(key: str) -> bool:
+        """檢查 API Key 是否有效（非空且非佔位符）"""
+        if not key:
+            return False
+        placeholders = ['your-', '-here', 'replace-', 'example', 'placeholder', 'xxx']
+        return not any(p in key.lower() for p in placeholders)
+
     def _init_fallback_embedding(self):
         """初始化備用 embedding provider"""
         config = get_config()
 
-        # 優先使用 OpenAI embedding
-        if config.OPENAI_API_KEY:
+        # 最優先：使用獨立 Embedding 配置（支援任何 OpenAI 相容 API）
+        if self._is_valid_api_key(config.EMBEDDING_API_KEY) and config.EMBEDDING_API_BASE and config.EMBEDDING_MODEL:
+            try:
+                self._embedding_provider = OpenAIProvider(
+                    api_key=config.EMBEDDING_API_KEY,
+                    model=config.EMBEDDING_MODEL,
+                    embedding_model=config.EMBEDDING_MODEL,
+                    base_url=config.EMBEDDING_API_BASE
+                )
+                logger.info(f"使用獨立 Embedding 配置: {config.EMBEDDING_API_BASE} / {config.EMBEDDING_MODEL}")
+                return
+            except Exception as e:
+                logger.warning(f"獨立 Embedding 配置初始化失敗: {e}")
+
+        # 其次使用 OpenAI embedding
+        if self._is_valid_api_key(config.OPENAI_API_KEY):
             try:
                 self._embedding_provider = OpenAIProvider(
                     api_key=config.OPENAI_API_KEY,
@@ -227,8 +249,8 @@ class AIServiceManager:
             except:
                 pass
 
-        # 其次使用 Gemini
-        if config.GEMINI_API_KEY:
+        # 再使用 Gemini
+        if self._is_valid_api_key(config.GEMINI_API_KEY):
             try:
                 self._embedding_provider = GeminiProvider(
                     api_key=config.GEMINI_API_KEY,
@@ -247,7 +269,7 @@ class AIServiceManager:
                 self._embedding_provider = ollama
                 logger.info("使用 Ollama 作為 embedding 備用")
         except:
-            logger.warning("無法初始化 embedding provider")
+            logger.warning("無法初始化 embedding provider，RAG 功能將不可用")
 
     @property
     def text_provider(self) -> Optional[BaseTextProvider]:
@@ -411,7 +433,7 @@ class AIServiceManager:
         providers.append({
             'id': 'gemini',
             'name': 'Google Gemini',
-            'available': bool(config.GEMINI_API_KEY),
+            'available': self._is_valid_api_key(config.GEMINI_API_KEY),
             'supports_embedding': True,
             'supports_image': True,
             'models': ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-pro']
@@ -421,7 +443,7 @@ class AIServiceManager:
         providers.append({
             'id': 'openai',
             'name': 'OpenAI',
-            'available': bool(config.OPENAI_API_KEY),
+            'available': self._is_valid_api_key(config.OPENAI_API_KEY),
             'supports_embedding': True,
             'supports_image': True,
             'models': ['gpt-4o', 'gpt-4.1', 'gpt-4-turbo', 'gpt-3.5-turbo']
@@ -431,7 +453,7 @@ class AIServiceManager:
         providers.append({
             'id': 'anthropic',
             'name': 'Anthropic Claude',
-            'available': bool(os.getenv('ANTHROPIC_API_KEY', '')),
+            'available': self._is_valid_api_key(os.getenv('ANTHROPIC_API_KEY', '')),
             'supports_embedding': False,
             'supports_image': False,
             'models': AnthropicProvider.AVAILABLE_MODELS
@@ -458,7 +480,7 @@ class AIServiceManager:
         providers.append({
             'id': 'groq',
             'name': 'Groq (高速)',
-            'available': bool(os.getenv('GROQ_API_KEY', '')),
+            'available': self._is_valid_api_key(os.getenv('GROQ_API_KEY', '')),
             'supports_embedding': False,
             'supports_image': False,
             'models': GroqProvider.AVAILABLE_MODELS
@@ -468,7 +490,7 @@ class AIServiceManager:
         providers.append({
             'id': 'deepseek',
             'name': 'DeepSeek (推理)',
-            'available': bool(os.getenv('DEEPSEEK_API_KEY', '')),
+            'available': self._is_valid_api_key(os.getenv('DEEPSEEK_API_KEY', '')),
             'supports_embedding': False,
             'supports_image': False,
             'models': DeepSeekProvider.AVAILABLE_MODELS

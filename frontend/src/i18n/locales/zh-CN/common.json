@@ -1,0 +1,36 @@
+{
+  "loading": "加载中...",
+  "cancel": "取消",
+  "save": "保存",
+  "create": "创建",
+  "delete": "删除",
+  "edit": "编辑",
+  "close": "关闭",
+  "export": "导出",
+  "copy": "复制",
+  "copied": "已复制",
+  "add": "添加",
+  "confirm": "确定",
+  "brand": "NoteBookLLM",
+  "splashAlt": "亮言 NoteBookLLM",
+  "createNotebook": "创建笔记本",
+  "dateLocale": "zh-CN",
+  "language": {
+    "label": "语言",
+    "zh-TW": "繁體中文",
+    "zh-CN": "简体中文"
+  },
+  "error": {
+    "loadNotebooks": "无法加载笔记本列表",
+    "createNotebook": "创建笔记本失败",
+    "loadNotebook": "无法加载笔记本",
+    "updateNotebook": "更新笔记本失败",
+    "deleteNotebook": "删除笔记本失败",
+    "loadFolders": "加载文件夹失败",
+    "createFolder": "新建文件夹失败",
+    "updateFolder": "更新文件夹失败",
+    "deleteFolder": "删除文件夹失败",
+    "moveNotebook": "移动笔记本失败",
+    "reorderFailed": "重新排序失败"
+  }
+}

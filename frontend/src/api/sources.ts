@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { Source, ApiResponse, SearchResponse } from '@/types'
+import type { Source, ApiResponse, SearchResponse, WebSearchResponse } from '@/types'
 
 // ==================== 來源管理 ====================
 
@@ -75,6 +75,33 @@ export const reindexSources = (notebookId?: string) =>
   apiClient.post<ApiResponse<{ message: string }>>(`/api/sources/reindex`, {
     notebook_id: notebookId,
   })
+
+// 重建向量嵌入
+export const reembedSource = (sourceId: string) =>
+  apiClient.post<ApiResponse<{ message: string }>>('/api/sources/reembed', {
+    source_id: sourceId,
+  })
+
+// ==================== 網路搜尋 ====================
+
+export const webSearch = (query: string) =>
+  apiClient.post<ApiResponse<WebSearchResponse>>('/api/web-search', { query })
+
+export interface WebSearchResultItem {
+  title: string
+  url: string
+  content: string
+  raw_content?: string
+}
+
+export const saveWebSearchResults = (notebookId: string, results: WebSearchResultItem[]) =>
+  apiClient.post<ApiResponse<{
+    saved: Source[]
+    failed: { title: string; reason: string }[]
+    total: number
+    saved_count: number
+    failed_count: number
+  }>>(`/api/notebooks/${notebookId}/sources/web-search-results`, { results })
 
 // ==================== 工具函數 ====================
 

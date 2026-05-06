@@ -1,0 +1,27 @@
+{
+  "title": "对话",
+  "export": "导出",
+  "copyAll": "复制",
+  "user": "用户",
+  "ai": "AI",
+  "copiedAll": "已复制全部对话",
+  "exportPrefix": "对话记录_",
+  "startUsing": "添加来源即可开始使用",
+  "startUsingDesc": "上传文件、添加网址或 YouTube 视频，AI 将根据这些来源回答你的问题",
+  "generating": "生成中...",
+  "inputPlaceholder": "开始输入...",
+  "selectedSources": "{{count}} 个来源",
+  "allSources": "所有来源",
+  "savedToClipboard": "已保存至剪贴板",
+  "sourceRef": "引用来源: ",
+  "copyTitle": "复制",
+  "thumbsUp": "赞",
+  "thumbsDown": "踩",
+  "bookmark": "保存至笔记",
+  "error": {
+    "loadHistory": "无法加载对话历史",
+    "sendMessage": "发送消息失败",
+    "deleteMessage": "删除消息失败",
+    "clearMessages": "清空对话失败"
+  }
+}

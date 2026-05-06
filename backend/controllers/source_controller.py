@@ -400,3 +400,163 @@ def reindex_sources():
         'success': True,
         'message': f'已重建 {count} 個來源的索引'
     })
+
+
+@source_bp.route('/sources/reembed', methods=['POST'])
+def reembed_sources():
+    """重建向量嵌入（刪除舊嵌入並重新分塊、嵌入）"""
+    data = request.get_json() or {}
+    source_id = data.get('source_id')
+    notebook_id = data.get('notebook_id')
+
+    rag_service = get_rag_service()
+
+    if source_id:
+        # 重建單一來源
+        source = Source.query.get(source_id)
+        if not source:
+            return jsonify({'success': False, 'error': '來源不存在'}), 404
+
+        rag_service.delete_source_embeddings(source_id)
+        embeddings = rag_service.process_source(source)
+
+        return jsonify({
+            'success': True,
+            'message': f'已重建嵌入，共 {len(embeddings)} 個片段'
+        })
+
+    elif notebook_id:
+        # 重建整個筆記本的所有來源
+        sources = Source.query.filter_by(notebook_id=notebook_id).all()
+        total = 0
+        for source in sources:
+            rag_service.delete_source_embeddings(source.id)
+            embeddings = rag_service.process_source(source)
+            total += len(embeddings)
+
+        return jsonify({
+            'success': True,
+            'message': f'已重建 {len(sources)} 個來源的嵌入，共 {total} 個片段'
+        })
+
+    else:
+        return jsonify({'success': False, 'error': '請提供 source_id 或 notebook_id'}), 400
+
+
+# ==================== Web Search API ====================
+
+@source_bp.route('/web-search', methods=['POST'])
+def web_search():
+    """使用 Tavily API 搜尋網路"""
+    data = request.get_json()
+    query = data.get('query', '')
+
+    if not query:
+        return jsonify({'success': False, 'error': '搜尋查詢為必填'}), 400
+
+    from services.web_search_service import get_web_search_service
+    search_service = get_web_search_service()
+    result = search_service.search(query)
+
+    if result.get('error'):
+        return jsonify({'success': False, 'error': result['error']}), 400
+
+    return jsonify({
+        'success': True,
+        'data': result
+    })
+
+
+@notebook_bp.route('/<notebook_id>/sources/web-search-results', methods=['POST'])
+def save_web_search_results(notebook_id):
+    """批量保存網路搜尋結果為來源（驗證 URL 可達性，保存 URL + 摘要）"""
+    notebook = Notebook.query.get(notebook_id)
+    if not notebook:
+        return jsonify({'success': False, 'error': '筆記本不存在'}), 404
+
+    data = request.get_json()
+    results = data.get('results', [])
+
+    if not results:
+        return jsonify({'success': False, 'error': '沒有選擇搜尋結果'}), 400
+
+    saved = []
+    failed = []
+
+    for item in results:
+        url = item.get('url', '')
+        title = item.get('title', '') or url[:100]
+        summary = item.get('content', '')
+        raw_content = item.get('raw_content', '')
+
+        if not url:
+            failed.append({'title': title, 'reason': '缺少 URL'})
+            continue
+
+        # 驗證 URL 是否可爬取（快速檢查，只確認頁面可載入）
+        try:
+            web_scraper = get_web_scraper()
+            # 使用 Playwright 快速驗證，超時 15 秒，等待 1 秒
+            from services.browser_scraper_service import get_browser_scraper
+            browser_scraper = get_browser_scraper()
+            scrape_content, scrape_meta, scrape_error = browser_scraper.scrape_url(url, timeout=15000, wait_ms=1000)
+            if scrape_error and not scrape_content:
+                current_app.logger.warning(f"URL 驗證失敗: {url} - {scrape_error}")
+                failed.append({'title': title, 'reason': f'網頁無法訪問: {scrape_error[:80]}'})
+                continue
+        except ImportError:
+            # Playwright 未安裝，跳過驗證
+            pass
+        except Exception as e:
+            # 驗證失敗不阻止保存，只記錄警告
+            current_app.logger.warning(f"URL 驗證異常（仍嘗試保存）: {url} - {e}")
+
+        try:
+            # 優先使用 raw_content（Tavily advanced 搜索的完整網頁內容），否則使用摘要
+            if raw_content and len(raw_content.strip()) > len(summary):
+                source_content = f"# {title}\n\n來源: {url}\n\n{raw_content}"
+            elif summary:
+                source_content = f"# {title}\n\n來源: {url}\n\n{summary}"
+            else:
+                source_content = f"# {title}\n\n來源: {url}"
+
+            source = Source(
+                notebook_id=notebook_id,
+                type='web',
+                name=title[:200],
+                url=url,
+                content=source_content,
+                metadata={
+                    'url': url,
+                    'title': title,
+                    'source': 'web_search',
+                }
+            )
+
+            db.session.add(source)
+            db.session.commit()
+
+            # 建立向量嵌入和全文索引
+            try:
+                rag_service = get_rag_service()
+                rag_service.process_source(source)
+                search_service = get_search_service()
+                search_service.index_source(source)
+            except Exception as e:
+                current_app.logger.error(f"索引建立失敗: {e}")
+
+            saved.append(source.to_dict())
+        except Exception as e:
+            failed.append({'title': title, 'reason': str(e)})
+            current_app.logger.error(f"保存搜索結果失敗: {e}")
+
+    return jsonify({
+        'success': True,
+        'data': {
+            'saved': saved,
+            'failed': failed,
+            'total': len(results),
+            'saved_count': len(saved),
+            'failed_count': len(failed),
+        }
+    })

@@ -1,0 +1,27 @@
+{
+  "title": "對話",
+  "export": "匯出",
+  "copyAll": "複製",
+  "user": "用戶",
+  "ai": "AI",
+  "copiedAll": "已複製全部對話",
+  "exportPrefix": "對話記錄_",
+  "startUsing": "新增來源即可開始使用",
+  "startUsingDesc": "上傳文件、新增網址或 YouTube 影片，AI 將根據這些來源回答你的問題",
+  "generating": "生成中...",
+  "inputPlaceholder": "開始輸入...",
+  "selectedSources": "{{count}} 個來源",
+  "allSources": "所有來源",
+  "savedToClipboard": "已儲存至剪貼簿",
+  "sourceRef": "引用來源: ",
+  "copyTitle": "複製",
+  "thumbsUp": "讚",
+  "thumbsDown": "倒讚",
+  "bookmark": "儲存至筆記",
+  "error": {
+    "loadHistory": "無法載入對話歷史",
+    "sendMessage": "發送訊息失敗",
+    "deleteMessage": "刪除訊息失敗",
+    "clearMessages": "清空對話失敗"
+  }
+}

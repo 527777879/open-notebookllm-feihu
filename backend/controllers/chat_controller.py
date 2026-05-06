@@ -7,7 +7,7 @@ from . import chat_bp
 from models import db, Notebook, ChatMessage
 from services.ai_service_manager import get_ai_service
 from services.rag_service import get_rag_service
-from services.prompts import ChatPrompts
+from services.prompts import ChatPrompts, get_language_instruction
 
 
 @chat_bp.route('/<notebook_id>/chats', methods=['GET'])
@@ -34,7 +34,9 @@ def send_message(notebook_id):
 
     data = request.get_json()
     message = data.get('message')
-    source_ids = data.get('source_ids')  # 可選，指定來源
+    source_ids = data.get('source_ids')
+    locale = data.get('locale', 'zh-TW')
+    language = get_language_instruction(locale)  # 可選，指定來源
 
     if not message:
         return jsonify({'success': False, 'error': '訊息為必填'}), 400
@@ -62,11 +64,11 @@ def send_message(notebook_id):
         ai_service = get_ai_service()
 
         if context:
-            prompt = ChatPrompts.RAG_TEMPLATE.format(context=context, question=message)
+            prompt = ChatPrompts.RAG_TEMPLATE.format(context=context, question=message, language=language)
         else:
             prompt = message
 
-        response = ai_service.generate(prompt, ChatPrompts.SYSTEM)
+        response = ai_service.generate(prompt, ChatPrompts.SYSTEM.format(language=language))
 
         # 儲存助手回應
         assistant_message = ChatMessage(
@@ -98,6 +100,8 @@ def stream_message(notebook_id):
     data = request.get_json()
     message = data.get('message')
     source_ids = data.get('source_ids')
+    locale = data.get('locale', 'zh-TW')
+    language = get_language_instruction(locale)
 
     if not message:
         return jsonify({'success': False, 'error': '訊息為必填'}), 400
@@ -130,12 +134,13 @@ def stream_message(notebook_id):
             ai_service = get_ai_service()
 
             if context:
-                prompt = ChatPrompts.RAG_TEMPLATE.format(context=context, question=message)
+                prompt = ChatPrompts.RAG_TEMPLATE.format(context=context, question=message, language=language)
             else:
                 prompt = message
 
+            system_prompt = ChatPrompts.SYSTEM.format(language=language)
             full_response = ""
-            for chunk in ai_service.generate_stream(prompt, ChatPrompts.SYSTEM):
+            for chunk in ai_service.generate_stream(prompt, system_prompt):
                 full_response += chunk
                 yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
 
@@ -191,8 +196,11 @@ def get_suggested_questions(notebook_id):
 
         context = "\n\n---\n\n".join(content_parts)
 
+        locale = request.args.get('locale', 'zh-TW')
+        language = get_language_instruction(locale)
+
         ai_service = get_ai_service()
-        prompt = ChatPrompts.SUGGESTED_QUESTIONS.format(context=context)
+        prompt = ChatPrompts.SUGGESTED_QUESTIONS.format(context=context, language=language)
 
         result = ai_service.generate_json(prompt)
 

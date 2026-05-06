@@ -1,0 +1,86 @@
+{
+  "title": "来源",
+  "addSource": "添加来源",
+  "searchPlaceholder": "搜索来源...",
+  "selectAll": "选择所有来源",
+  "noSources": "没有来源",
+  "noSourcesDesc": "点击「添加来源」开始",
+  "addSourceModal": "添加来源",
+  "deleteConfirm": "确定要删除这个来源吗？",
+  "unnamedText": "未命名文本",
+  "typeLabels": {
+    "all": "全部",
+    "pdf": "PDF",
+    "text": "文本",
+    "web": "网页",
+    "youtube": "YouTube",
+    "gdocs": "文档",
+    "audio": "音频"
+  },
+  "addTypes": {
+    "file": "文件",
+    "audio": "音频",
+    "url": "网址",
+    "youtube": "YouTube",
+    "text": "文本"
+  },
+  "fileUpload": "点击选择文件",
+  "fileSupport": "支持 PDF、TXT、DOCX、XLSX、CSV",
+  "audioUpload": "点击选择音频",
+  "audioSupport": "支持 MP3、WAV、M4A、OGG 等格式",
+  "sttService": "语音转文字服务",
+  "sttProviders": {
+    "openai": {
+      "name": "OpenAI Whisper",
+      "description": "高品质，支持多语言"
+    },
+    "groq": {
+      "name": "Groq Whisper",
+      "description": "超高速，免费额度"
+    },
+    "local": {
+      "name": "本地 Whisper",
+      "description": "离线使用，需安装"
+    }
+  },
+  "language": "语言",
+  "autoDetect": "自动检测",
+  "transcribing": "正在转录音频，请稍候...",
+  "titlePlaceholder": "标题（选填）",
+  "textPlaceholder": "粘贴或输入文本内容...",
+  "sourceTypeLabels": {
+    "pdf": "PDF",
+    "text": "文本",
+    "web": "网页",
+    "youtube": "YouTube",
+    "gdocs": "文档",
+    "audio": "音频"
+  },
+  "error": {
+    "loadSources": "无法加载来源列表",
+    "uploadFile": "上传文件失败",
+    "addUrl": "添加网址来源失败",
+    "addYoutube": "添加 YouTube 来源失败",
+    "addText": "添加文本来源失败",
+    "deleteSource": "删除来源失败",
+    "reembedSource": "重建嵌入失败"
+  },
+  "reembed": "重新嵌入",
+  "tabs": {
+    "mySources": "我的来源",
+    "webSearch": "网络搜索"
+  },
+  "webSearch": {
+    "title": "网络搜索",
+    "placeholder": "输入搜索关键词...",
+    "search": "搜索",
+    "aiAnswer": "AI 摘要",
+    "selectAll": "全选",
+    "saveSelected": "保存选中",
+    "emptyHint": "输入关键词搜索互联网资源",
+    "error": "搜索失败，请稍后重试",
+    "saveError": "保存失败，请稍后重试",
+    "saveSuccess": "已保存 {{saved}} 条来源",
+    "saveFailed": "{{failed}} 条保存失败"
+  }
+}

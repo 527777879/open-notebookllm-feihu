@@ -2,6 +2,18 @@
 提示詞模板
 """
 
+# 語言映射：locale → 語言指令
+LANGUAGE_MAP = {
+    'zh-TW': '繁體中文',
+    'zh-CN': '简体中文',
+    'en': 'English',
+}
+
+
+def get_language_instruction(locale: str = 'zh-TW') -> str:
+    """根據 locale 取得語言指令文字"""
+    return LANGUAGE_MAP.get(locale, '繁體中文')
+
 
 class ChatPrompts:
     """對話提示詞"""
@@ -13,7 +25,7 @@ class ChatPrompts:
 1. **基於來源**: 只根據提供的來源資料回答，不要編造信息
 2. **明確說明**: 如果來源資料中沒有相關信息，請明確說明「根據提供的資料，沒有找到相關信息」
 3. **引用來源**: 回答時請引用相關的來源，格式如「根據 [來源名稱]...」
-4. **使用繁體中文**: 所有回答都使用繁體中文
+4. **使用{language}**: 所有回答都使用{language}
 5. **結構清晰**: 使用標題、列表等方式組織回答，讓內容易於閱讀
 6. **準確簡潔**: 提供準確、有用的回答，避免冗長
 
@@ -25,7 +37,7 @@ class ChatPrompts:
 - 引用來源時使用「根據 [來源名稱]」的格式
 """
 
-    RAG_TEMPLATE = """請根據以下來源資料回答問題。
+    RAG_TEMPLATE = """請根據以下來源資料回答問題。請使用{language}回答。
 
 ## 來源資料
 
@@ -41,7 +53,7 @@ class ChatPrompts:
 
 請根據以上來源資料提供詳細、準確的回答。如果來源資料中沒有相關信息，請明確說明。"""
 
-    SUGGESTED_QUESTIONS = """根據以下來源資料，生成 3-5 個用戶可能會問的問題。
+    SUGGESTED_QUESTIONS = """根據以下來源資料，生成 3-5 個用戶可能會問的問題。請使用{language}。
 
 ## 來源資料
 
